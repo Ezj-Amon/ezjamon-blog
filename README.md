@@ -9,7 +9,7 @@
 
 AstroPaper is a minimal, responsive, accessible and SEO-friendly Astro blog theme. This theme is designed and crafted based on [my personal blog](https://satnaing.dev/blog).
 
-Read [the blog posts](https://astro-paper.pages.dev/posts/) or check [the README Documentation Section](#-documentation) for more info.
+Read [the blog posts](https://ezjamon.com/posts/) or check [the README Documentation Section](#-documentation) for more info.
 
 ## 🔥 Features
 
@@ -26,7 +26,7 @@ Read [the blog posts](https://astro-paper.pages.dev/posts/) or check [the README
 - [x] collapsible table of contents
 - [x] followed best practices
 - [x] highly customizable
-- [x] dynamic OG image generation for blog posts ([Blog Post](https://astro-paper.pages.dev/posts/dynamic-og-image-generation-in-astropaper-blog-posts/))
+- [x] dynamic OG image generation for blog posts ([Blog Post](https://ezjamon.com/posts/dynamic-og-image-generation-in-astropaper-blog-posts/))
 - [x] i18n ready
 
 _Note: I've tested screen-reader accessibility of AstroPaper using **VoiceOver** on Mac and **TalkBack** on Android. I couldn't test all other screen-readers out there. However, accessibility enhancements in AstroPaper should be working fine on others as well._
@@ -34,7 +34,7 @@ _Note: I've tested screen-reader accessibility of AstroPaper using **VoiceOver**
 ## ✅ Lighthouse Score
 
 <p align="center">
-  <a href="https://pagespeed.web.dev/report?url=https%3A%2F%2Fastro-paper.pages.dev%2F&form_factor=desktop">
+  <a href="https://pagespeed.web.dev/report?url=https%3A%2F%2Fezjamon.com%2F&form_factor=desktop">
     <img width="710" alt="AstroPaper Lighthouse Score" src="AstroPaper-lighthouse-score.svg">
   </a>
 </p>
@@ -78,10 +78,10 @@ All blog posts are stored in the `src/content/posts/` directory. You can organis
 
 Documentation can be read in two formats\_ _markdown_ & _blog post_.
 
-- Configuration - [markdown](src/content/posts/how-to-configure-astropaper-theme.md) | [blog post](https://astro-paper.pages.dev/posts/how-to-configure-astropaper-theme/)
-- Add Posts - [markdown](src/content/posts/adding-new-post.md) | [blog post](https://astro-paper.pages.dev/posts/adding-new-posts-in-astropaper-theme/)
-- Customize Color Schemes - [markdown](src/content/posts/customizing-astropaper-theme-color-schemes.md) | [blog post](https://astro-paper.pages.dev/posts/customizing-astropaper-theme-color-schemes/)
-- Predefined Color Schemes - [markdown](src/content/posts/predefined-color-schemes.md) | [blog post](https://astro-paper.pages.dev/posts/predefined-color-schemes/)
+- Configuration - [markdown](src/content/posts/how-to-configure-astropaper-theme.md) | [blog post](https://ezjamon.com/posts/how-to-configure-astropaper-theme/)
+- Add Posts - [markdown](src/content/posts/adding-new-post.md) | [blog post](https://ezjamon.com/posts/adding-new-posts-in-astropaper-theme/)
+- Customize Color Schemes - [markdown](src/content/posts/customizing-astropaper-theme-color-schemes.md) | [blog post](https://ezjamon.com/posts/customizing-astropaper-theme-color-schemes/)
+- Predefined Color Schemes - [markdown](src/content/posts/predefined-color-schemes.md) | [blog post](https://ezjamon.com/posts/predefined-color-schemes/)
 
 ## 💻 Tech Stack
 

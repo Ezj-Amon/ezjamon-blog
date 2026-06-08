@@ -2,7 +2,7 @@ import { defineAstroPaperConfig } from "./src/types/config";
 
 export default defineAstroPaperConfig({
   site: {
-    url: "https://astro-paper.pages.dev/",
+    url: "https://ezjamon.com/",
     title: "Amon",
     description: "记录技术、生活和个人思考的博客。",
     author: "Amon",
