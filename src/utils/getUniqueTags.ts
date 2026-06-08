@@ -1,5 +1,4 @@
 import type { CollectionEntry } from "astro:content";
-import { postFilter } from "./postFilter";
 import { slugifyStr } from "./slugify";
 
 type Tag = {
@@ -7,17 +6,17 @@ type Tag = {
   tagName: string;
 };
 
+type TaggedEntry = CollectionEntry<"posts"> | CollectionEntry<"resources">;
+
 /**
- * Builds a de-duplicated, sorted tag list from posts.
+ * Builds a de-duplicated, sorted tag list from content entries.
  *
- * - Drafts and scheduled posts are excluded via `postFilter()`
  * - `tag` is the slug used in URLs; `tagName` is the original label for display
  * - Uniqueness is based on the slug (so differently-cased labels collapse)
  */
-export function getUniqueTags(posts: CollectionEntry<"posts">[]) {
-  const tags: Tag[] = posts
-    .filter(postFilter)
-    .flatMap(post => post.data.tags)
+export function getUniqueTags(entries: TaggedEntry[]) {
+  const tags: Tag[] = entries
+    .flatMap(entry => entry.data.tags)
     .map(tag => ({ tag: slugifyStr(tag), tagName: tag }))
     .filter(
       (value, index, self) =>

@@ -1,5 +1,5 @@
 {
-  "name": "ezjamon-blog",
+  "name": "Amon-blog",
   "type": "module",
   "version": "6.1.0",
   "engines": {
@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build && pagefind --site dist && cp -r dist/pagefind public/",
+    "build": "astro check && astro build && pagefind --site dist && node -e \"const fs=require('node:fs');fs.rmSync('public/pagefind',{recursive:true,force:true});fs.cpSync('dist/pagefind','public/pagefind',{recursive:true});\"",
     "preview": "astro preview",
     "sync": "astro sync",
     "astro": "astro",
@@ -45,6 +45,7 @@
     "prettier": "3.8.3",
     "prettier-plugin-astro": "0.14.1",
     "prettier-plugin-tailwindcss": "^0.8.0",
-    "typescript": "^6.0.3"
+    "typescript": "^6.0.3",
+    "vite": "^7.3.5"
   }
 }

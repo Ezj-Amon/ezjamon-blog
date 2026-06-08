@@ -5,25 +5,80 @@ import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Main from "@/components/Main.astro";
 import Breadcrumb from "@/components/Breadcrumb.astro";
-import Card from "@/components/Card.astro";
+import Datetime from "@/components/Datetime.astro";
 import Footer from "@/components/Footer.astro";
 import Pagination from "@/components/Pagination.astro";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { getSortedPosts } from "@/utils/getSortedPosts";
+import { getPostUrl } from "@/utils/getPostPaths";
+import { postFilter } from "@/utils/postFilter";
 import { slugifyAll } from "@/utils/slugify";
 import { useTranslations } from "@/i18n";
 import config from "@/config";
 
+type TagPageItem = {
+  title: string;
+  description: string;
+  href: string;
+  pubDatetime: Date;
+  modDatetime?: Date | null;
+  label: string;
+  source?: string;
+  external?: boolean;
+};
+
 export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
-  const posts = await getCollection("posts", ({ data }) => !data.draft);
-  const tags = getUniqueTags(posts);
+  const resourceTypeLabels = {
+    article: "文章",
+    video: "视频",
+    course: "教程",
+    tool: "工具",
+    bookmark: "收藏",
+    repo: "代码",
+    game: "游戏",
+  };
+
+  const posts = getSortedPosts(await getCollection("posts", postFilter));
+  const resources = (
+    await getCollection("resources", ({ data }) => !data.draft)
+  ).sort(
+    (a, b) =>
+      new Date(b.data.pubDatetime).getTime() -
+      new Date(a.data.pubDatetime).getTime()
+  );
+  const tags = getUniqueTags([...posts, ...resources]);
 
   return tags.flatMap(({ tag, tagName }) => {
-    const tagPosts = getSortedPosts(
-      posts.filter(({ data }) => slugifyAll(data.tags).includes(tag))
+    const tagItems: TagPageItem[] = [
+      ...posts
+        .filter(({ data }) => slugifyAll(data.tags).includes(tag))
+        .map(({ id, data, filePath }) => ({
+          title: data.title,
+          description: data.description,
+          href: getPostUrl(id, filePath, config.site.lang),
+          pubDatetime: data.pubDatetime,
+          modDatetime: data.modDatetime,
+          label: "文章",
+        })),
+      ...resources
+        .filter(({ data }) => slugifyAll(data.tags).includes(tag))
+        .map(({ data }) => ({
+          title: data.title,
+          description: data.description,
+          href: data.url,
+          pubDatetime: data.pubDatetime,
+          modDatetime: undefined,
+          label: resourceTypeLabels[data.type],
+          source: data.source,
+          external: true,
+        })),
+    ].sort(
+      (a, b) =>
+        new Date(b.modDatetime ?? b.pubDatetime).getTime() -
+        new Date(a.modDatetime ?? a.pubDatetime).getTime()
     );
 
-    return paginate(tagPosts, {
+    return paginate(tagItems, {
       params: { tag },
       props: { tagName },
       pageSize: config.posts.perPage,
@@ -47,7 +102,36 @@ const t = useTranslations(locale);
     pageDesc={`${t.pages.tagDesc} "${tagName}".`}
   >
     <ul>
-      {page.data.map(data => <Card {...data} />)}
+      {
+        page.data.map(item => (
+          <li class="my-6">
+            <div class="text-muted-foreground mb-1 flex flex-wrap items-center gap-2 text-sm">
+              <span class="bg-muted rounded px-2 py-0.5 text-xs font-medium">
+                {item.label}
+              </span>
+              {item.source && <span>{item.source}</span>}
+            </div>
+
+            <a
+              href={item.href}
+              target={item.external ? "_blank" : undefined}
+              rel={item.external ? "noreferrer" : undefined}
+              class:list={[
+                "text-accent inline-block text-lg font-medium",
+                "decoration-dashed underline-offset-4 hover:underline",
+                "focus-visible:no-underline focus-visible:underline-offset-0",
+              ]}
+            >
+              <h2>{item.title}</h2>
+            </a>
+            <Datetime
+              pubDatetime={item.pubDatetime}
+              modDatetime={item.modDatetime}
+            />
+            <p>{item.description}</p>
+          </li>
+        ))
+      }
     </ul>
   </Main>
 

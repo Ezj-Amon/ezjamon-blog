@@ -34,4 +34,23 @@ const pages = defineCollection({
   }),
 });
 
-export const collections = { posts, pages };
+const resources = defineCollection({
+  loader: glob({
+    pattern: "**/[^_]*.{md,mdx}",
+    base: "./src/content/resources",
+  }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string(),
+    url: z.url(),
+    type: z
+      .enum(["article", "video", "course", "tool", "bookmark", "repo", "game"])
+      .default("bookmark"),
+    source: z.string().optional(),
+    pubDatetime: z.date().default(() => new Date()),
+    tags: z.array(z.string()).default([]),
+    draft: z.boolean().optional(),
+  }),
+});
+
+export const collections = { posts, pages, resources };

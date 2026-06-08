@@ -25,6 +25,18 @@ const backUrl = config.features.showBackButton
 const pagefindBundlePath = getAssetPath("pagefind/");
 
 const t = useTranslations(locale);
+const pagefindTranslations = {
+  language: "zh-CN",
+  placeholder: t.a11y.searchPlaceholder,
+  search_label: t.pages.searchTitle,
+  clear_search: "清除",
+  load_more: "加载更多",
+  searching: "正在搜索 [SEARCH_TERM]...",
+  zero_results: "没有找到与 [SEARCH_TERM] 相关的结果",
+  one_result: "找到 [COUNT] 个与 [SEARCH_TERM] 相关的结果",
+  many_results: "找到 [COUNT] 个与 [SEARCH_TERM] 相关的结果",
+  filters_label: "筛选",
+};
 ---
 
 <Layout title={`${t.pages.searchTitle} | ${config.site.title}`}>
@@ -32,12 +44,17 @@ const t = useTranslations(locale);
 
   <Breadcrumb />
 
-  <Main pageTitle={t.pages.searchTitle} pageDesc={t.pages.searchDesc}>
+  <Main
+    pageTitle={t.pages.searchTitle}
+    pageDesc={t.pages.searchDesc}
+    pagefindBody={false}
+  >
     <div
       id="pagefind-search"
       transition:persist
       data-backurl={backUrl}
       data-bundle-path={pagefindBundlePath}
+      data-translations={JSON.stringify(pagefindTranslations)}
     >
     </div>
   </Main>
@@ -54,6 +71,9 @@ const t = useTranslations(locale);
 
     const bundlePath = pageFindSearch?.dataset?.bundlePath;
     if (!bundlePath) return;
+    const translations = JSON.parse(
+      pageFindSearch?.dataset?.translations ?? "{}"
+    );
 
     const params = new URLSearchParams(window.location.search);
 
@@ -67,8 +87,8 @@ const t = useTranslations(locale);
       if (import.meta.env.DEV) {
         pageFindSearch.innerHTML = `
             <div class="bg-muted/75 rounded p-4 space-y-4 mb-4">
-              <p><strong>DEV mode Warning! </strong>You need to build the project at least once to see the search results during development.</p>
-              <code class="block bg-black text-white px-2 py-1 rounded">pnpm run build</code>
+              <p><strong>开发模式提示：</strong>需要至少执行一次构建，才能在开发环境中看到搜索结果。</p>
+              <code class="block bg-black text-white px-2 py-1 rounded">npm run build</code>
             </div>
           `;
       }
@@ -79,6 +99,7 @@ const t = useTranslations(locale);
         bundlePath,
         showImages: false,
         showSubResults: true,
+        translations,
         processTerm: function (term: string) {
           params.set("q", term); // Update the `q` parameter in the URL
           history.replaceState(history.state, "", "?" + params.toString()); // Push the new URL without reloading

@@ -6,9 +6,15 @@ type Props = {
   pageTitle: string | [string, string];
   pageDesc?: string;
   class?: string;
+  pagefindBody?: boolean;
 };
 
-const { pageTitle, pageDesc, class: className } = Astro.props;
+const {
+  pageTitle,
+  pageDesc,
+  class: className,
+  pagefindBody = true,
+} = Astro.props;
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const backUrl = config.features.showBackButton
@@ -18,6 +24,7 @@ const backUrl = config.features.showBackButton
 
 <main
   data-backUrl={backUrl}
+  data-pagefind-body={pagefindBody ? "" : undefined}
   id="main-content"
   class:list={["app-layout pb-4", className]}
 >
