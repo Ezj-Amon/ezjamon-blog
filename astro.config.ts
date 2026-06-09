@@ -17,15 +17,20 @@ import {
 import { transformerFileName } from "./src/utils/transformers/fileName";
 import config from "./astro-paper.config";
 
+const isCmsBuild = process.env.CMS_BUILD === "true";
+
 export default defineConfig({
   site: config.site.url,
-  adapter: cloudflare({
-    imageService: "compile",
-    prerenderEnvironment: "node",
-  }),
+  ...(isCmsBuild
+    ? {
+        adapter: cloudflare({
+          imageService: "compile",
+          prerenderEnvironment: "node",
+        }),
+      }
+    : {}),
   integrations: [
-    react(),
-    keystatic(),
+    ...(isCmsBuild ? [react(), keystatic()] : []),
     mdx(),
     sitemap({
       filter: page =>
@@ -58,12 +63,16 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss() as never],
-    optimizeDeps: {
-      exclude: [
-        "@keystatic/astro/internal/keystatic-api.js",
-        "@keystatic/astro/internal/keystatic-astro-page.astro",
-      ],
-    },
+    ...(isCmsBuild
+      ? {
+          optimizeDeps: {
+            exclude: [
+              "@keystatic/astro/internal/keystatic-api.js",
+              "@keystatic/astro/internal/keystatic-astro-page.astro",
+            ],
+          },
+        }
+      : {}),
   },
   env: {
     schema: {

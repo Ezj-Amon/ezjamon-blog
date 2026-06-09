@@ -9,8 +9,8 @@ It is based on AstroPaper and has been adapted for Chinese content, Cloudflare P
 - Theme base: AstroPaper
 - Styling: Tailwind CSS 4 through `@tailwindcss/vite`
 - Content: Astro Content Collections from `src/content`
-- CMS: Keystatic Cloud, mounted at `/keystatic`
-- Deployment: Cloudflare Pages
+- CMS: Keystatic Cloud, mounted by the CMS Worker at `/keystatic`
+- Deployment: Cloudflare Pages for the public site, Cloudflare Workers for the CMS
 - Search: Pagefind static index
 - Feed/indexing: Astro RSS and sitemap routes
 - Adapter: `@astrojs/cloudflare`
@@ -18,7 +18,7 @@ It is based on AstroPaper and has been adapted for Chinese content, Cloudflare P
 ## Important Files
 
 - `astro-paper.config.ts`: site identity, SEO-facing site URL, author, pagination, feature flags, social links.
-- `astro.config.ts`: Astro integrations, Cloudflare adapter, sitemap, MDX, Keystatic, markdown plugins, Tailwind Vite plugin.
+- `astro.config.ts`: Astro integrations, sitemap, MDX, markdown plugins, Tailwind Vite plugin, and conditional CMS/Cloudflare adapter setup.
 - `keystatic.config.ts`: CMS schema and Keystatic Cloud project configuration.
 - `src/content.config.ts`: Astro content collection schemas for posts, pages, and resources.
 - `src/content/posts/`: blog posts in `.md` and `.mdx`.
@@ -70,10 +70,10 @@ storage: {
 }
 ```
 
-Admin entry point:
+Recommended admin entry point:
 
 ```txt
-https://ezjamon.com/keystatic
+https://cms.ezjamon.com/keystatic
 ```
 
 Keystatic edits are expected to write content changes back through the connected GitHub repository.
@@ -84,7 +84,12 @@ If Keystatic allows a field that Astro's content schema rejects, Cloudflare buil
 
 ## Build And Deployment
 
-Cloudflare Pages is connected to GitHub repo:
+This project is intended to use two Cloudflare deployments:
+
+- Public blog: Cloudflare Pages, static-only, fast deploys.
+- CMS admin: Cloudflare Workers, dynamic Keystatic route.
+
+Both can use the same GitHub repo:
 
 ```txt
 Ezj-Amon/ezjamon-blog
@@ -97,31 +102,46 @@ main
 ```
 
 Configured Cloudflare build command:
+Public Pages build command:
 
 ```bash
 npm run build
 ```
 
-Configured Cloudflare output directory:
+Public Pages output directory:
 
 ```txt
 dist
 ```
 
+CMS Worker build command:
+
+```bash
+npm run build:cms
+```
+
+CMS Worker deploy command:
+
+```bash
+npx wrangler deploy
+```
+
 Even though the build command uses npm, Cloudflare can still install dependencies with pnpm because `pnpm-lock.yaml` exists.
 Keep `pnpm-lock.yaml` synchronized whenever `package.json` dependencies change.
 
-The build script is:
+The public Pages build script indexes static output in `dist`:
 
 ```bash
-astro check && astro build && pagefind --site dist/client && node -e "const fs=require('node:fs');fs.rmSync('public/pagefind',{recursive:true,force:true});fs.cpSync('dist/client/pagefind','public/pagefind',{recursive:true});"
+astro check && astro build && pagefind --site dist
 ```
 
-Why `dist/client` matters:
+The CMS Worker build script enables `CMS_BUILD=true`, adds Keystatic and the Cloudflare adapter, and indexes `dist/client`.
 
-- With the Cloudflare adapter, Astro outputs client/static assets under `dist/client`.
-- Pagefind must index `dist/client`, not only `dist`.
-- Cloudflare Pages output directory remains `dist`.
+Why the two build modes matter:
+
+- Public Pages should stay static and output to `dist` for fast blog deploys.
+- CMS Worker needs Cloudflare adapter output, which produces `dist/client` and `dist/server`.
+- `/keystatic` is intentionally not part of the public Pages static build.
 
 ## Local Commands
 
@@ -131,6 +151,7 @@ Use pnpm as the primary package manager for dependency consistency:
 pnpm install
 pnpm dev
 pnpm run build
+pnpm run build:cms
 pnpm run lint
 npx tsc --noEmit
 ```
@@ -151,6 +172,8 @@ Before deploying structural/content-schema changes, verify:
 ```bash
 pnpm install --frozen-lockfile
 npm run build
+npm run build:cms
+npx wrangler deploy --dry-run
 ```
 
 During a successful build, confirm these are generated:
@@ -159,15 +182,17 @@ During a successful build, confirm these are generated:
 - `sitemap.xml`
 - tag pages under `/tags/...`
 - post pages under `/posts/...`
-- Pagefind index under `dist/client/pagefind`
+- Pagefind index under `dist/pagefind` for Pages builds.
+- Pagefind index under `dist/client/pagefind` for CMS Worker builds.
 
 ## Notes And Pitfalls
 
 - Do not remove `@astrojs/react`, `react`, or `react-dom`; Keystatic needs React.
-- Do not remove `@astrojs/cloudflare`; `/keystatic` needs the Cloudflare-compatible build setup.
+- Do not remove `@astrojs/cloudflare`; the CMS Worker build needs the Cloudflare-compatible setup.
 - Do not assume Cloudflare installs with npm just because the build command is `npm run build`; lockfiles influence dependency installation.
 - Do not commit local build/cache folders such as `.astro`, `.wrangler`, `dist`, or `node_modules`.
-- If `/keystatic` returns 404 after deployment, first check that Cloudflare deployed the latest successful build and that `@keystatic/astro` is still included in `astro.config.ts`.
+- If `/keystatic` returns 404 on the public Pages domain, that is expected for the static build. Use the CMS Worker domain.
+- If `/keystatic` returns 404 on the CMS Worker domain, check that the Worker uses `npm run build:cms` before `npx wrangler deploy`.
 - If Cloudflare fails before running the build command with `ERR_PNPM_OUTDATED_LOCKFILE`, run `pnpm install --lockfile-only`, then commit `pnpm-lock.yaml`.
 - When adding new post frontmatter fields, update both Astro's schema and Keystatic's schema.
 - Keep `astro-paper.config.ts` site URL as `https://ezjamon.com/`; RSS, sitemap, canonical URLs, and social metadata depend on it.
