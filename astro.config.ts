@@ -1,7 +1,10 @@
 import { defineConfig, envField, svgoOptimizer } from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
+import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
+import react from "@astrojs/react";
 import sitemap from "@astrojs/sitemap";
+import keystatic from "@keystatic/astro";
 import { unified } from "@astrojs/markdown-remark";
 import remarkToc from "remark-toc";
 import remarkCollapse from "remark-collapse";
@@ -16,7 +19,13 @@ import config from "./astro-paper.config";
 
 export default defineConfig({
   site: config.site.url,
+  adapter: cloudflare({
+    imageService: "compile",
+    prerenderEnvironment: "node",
+  }),
   integrations: [
+    react(),
+    keystatic(),
     mdx(),
     sitemap({
       filter: page =>
@@ -49,6 +58,12 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss() as never],
+    optimizeDeps: {
+      exclude: [
+        "@keystatic/astro/internal/keystatic-api.js",
+        "@keystatic/astro/internal/keystatic-astro-page.astro",
+      ],
+    },
   },
   env: {
     schema: {

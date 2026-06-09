@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "astro dev",
-    "build": "astro check && astro build && pagefind --site dist && node -e \"const fs=require('node:fs');fs.rmSync('public/pagefind',{recursive:true,force:true});fs.cpSync('dist/pagefind','public/pagefind',{recursive:true});\"",
+    "build": "astro check && astro build && pagefind --site dist/client && node -e \"const fs=require('node:fs');fs.rmSync('public/pagefind',{recursive:true,force:true});fs.cpSync('dist/client/pagefind','public/pagefind',{recursive:true});\"",
     "preview": "astro preview",
     "sync": "astro sync",
     "astro": "astro",
@@ -16,13 +16,19 @@
     "lint": "eslint ."
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^13.6.1",
     "@astrojs/mdx": "^6.0.1",
+    "@astrojs/react": "^5.0.7",
     "@astrojs/rss": "^4.0.18",
     "@astrojs/sitemap": "^3.7.3",
+    "@keystatic/astro": "^5.1.0",
+    "@keystatic/core": "^0.5.50",
     "@tailwindcss/vite": "^4.3.0",
     "astro": "^6.4.2",
     "dayjs": "^1.11.21",
     "lodash.kebabcase": "^4.1.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
     "rehype-callouts": "^2.1.2",
     "remark-collapse": "^0.1.2",
     "remark-toc": "^9.0.0",
