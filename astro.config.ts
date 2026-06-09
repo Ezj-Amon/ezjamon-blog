@@ -1,4 +1,9 @@
-import { defineConfig, envField, svgoOptimizer } from "astro/config";
+import {
+  defineConfig,
+  envField,
+  sessionDrivers,
+  svgoOptimizer,
+} from "astro/config";
 import tailwindcss from "@tailwindcss/vite";
 import cloudflare from "@astrojs/cloudflare";
 import mdx from "@astrojs/mdx";
@@ -23,6 +28,9 @@ export default defineConfig({
   site: config.site.url,
   ...(isCmsBuild
     ? {
+        session: {
+          driver: sessionDrivers.lruCache(),
+        },
         adapter: cloudflare({
           imageService: "compile",
           prerenderEnvironment: "node",
