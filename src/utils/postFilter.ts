@@ -9,8 +9,11 @@ import config from "@/config";
  * - In dev, always shows non-draft posts to make authoring easier
  */
 export function postFilter({ data }: CollectionEntry<"posts">) {
+  if (data.draft) return false;
+  if (!data.scheduled || import.meta.env.DEV) return true;
+
   const isPublishTimePassed =
     Date.now() >
     new Date(data.pubDatetime).getTime() - config.posts.scheduledPostMargin;
-  return !data.draft && (import.meta.env.DEV || isPublishTimePassed);
+  return isPublishTimePassed;
 }

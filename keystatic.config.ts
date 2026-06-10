@@ -26,6 +26,12 @@ const postFields = (extension: "md" | "mdx") => ({
     defaultValue: { kind: "now" },
     validation: { isRequired: true },
   }),
+  scheduled: fields.checkbox({
+    label: "Scheduled publish",
+    description:
+      "Only hide this post until the published date when this is checked.",
+    defaultValue: false,
+  }),
   modDatetime: fields.datetime({
     label: "Modified date",
     description: "Optional. Used for sorting and RSS when present.",
@@ -61,6 +67,7 @@ const postFields = (extension: "md" | "mdx") => ({
   timezone: fields.text({
     label: "Timezone",
     description: "Optional IANA timezone, for example Asia/Shanghai.",
+    defaultValue: "Asia/Shanghai",
   }),
   body: fields.mdx({
     label: "Content",
