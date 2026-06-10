@@ -1,7 +1,7 @@
 ---
 title: 初创产品为何在ChatGPT里“隐身”
 author: Amon
-pubDatetime: 2026-06-10T11:01:00.000Z
+pubDatetime: 2026-06-10T05:01:00.000Z
 description: GEO的真相
 featured: true
 draft: false
