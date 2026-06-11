@@ -1,11 +1,12 @@
 ---
 import { getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
-import Breadcrumb from "@/components/Breadcrumb.astro";
 import Main from "@/components/Main.astro";
 import Footer from "@/components/Footer.astro";
 import Tag from "@/components/Tag.astro";
+import { getContentTaxonomy } from "@/utils/getContentTaxonomy";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { postFilter } from "@/utils/postFilter";
 import { useTranslations } from "@/i18n";
@@ -13,21 +14,66 @@ import config from "@/config";
 
 const posts = await getCollection("posts", postFilter);
 const resources = await getCollection("resources", ({ data }) => !data.draft);
-const tags = getUniqueTags([...posts, ...resources]);
+const entries = [...posts, ...resources];
+const tags = getUniqueTags(entries);
+const taxonomy = getContentTaxonomy(entries);
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
+const markers = ["⌂", "⌘", "◎", "☷"];
 ---
 
 <Layout title={`${t.pages.tagsTitle} | ${config.site.title}`}>
   <Header />
 
-  <Breadcrumb />
+  <Main pageTitle={t.pages.tagsTitle} pageDesc={t.pages.tagsDesc} wide>
+    <div class="mb-5 flex justify-end">
+      <span
+        class="border-border bg-background text-muted-foreground rounded-md border px-3 py-1.5 text-sm font-semibold"
+        aria-label="当前排序：按使用次数"
+      >
+        按使用次数⌄
+      </span>
+    </div>
 
-  <Main pageTitle={t.pages.tagsTitle} pageDesc={t.pages.tagsDesc}>
-    <ul class="flex flex-wrap gap-6">
-      {tags.map(({ tag, tagName }) => <Tag {tag} {tagName} />)}
-    </ul>
+    <section class="space-y-6">
+      {
+        taxonomy.map((group, index) => (
+          <article>
+            <h2 class="mb-3 flex items-center gap-2 text-sm font-bold">
+              <span class="text-accent">{markers[index % markers.length]}</span>
+              <a
+                href={getRelativeLocaleUrl(
+                  locale,
+                  `categories/${group.category}/`
+                )}
+                class="hover:text-accent"
+              >
+                {group.categoryName}
+              </a>
+            </h2>
+            <ul class="flex flex-wrap gap-2">
+              {group.tags.map(tag => (
+                <Tag
+                  tag={tag.tag}
+                  tagName={tag.tagName}
+                  count={tag.count}
+                  size="sm"
+                />
+              ))}
+            </ul>
+          </article>
+        ))
+      }
+    </section>
+
+    {taxonomy.length === 0 && (
+      <ul class="flex flex-wrap gap-2">
+        {tags.map(({ tag, tagName, count }) => (
+          <Tag {tag} {tagName} {count} size="sm" />
+        ))}
+      </ul>
+    )}
   </Main>
 
   <Footer />

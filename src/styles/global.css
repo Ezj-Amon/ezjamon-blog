@@ -6,6 +6,11 @@
 @custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
 
 @layer base {
+  body {
+    background:
+      linear-gradient(180deg, #f7f8f7 0%, #eef0ef 100%);
+  }
+
   * {
     @apply border-border outline-accent/75;
     scrollbar-width: auto;
@@ -26,13 +31,25 @@
 }
 
 @utility app-layout {
-  @apply max-w-app mx-auto w-full px-4;
+  @apply mx-auto w-[calc(100%-2rem)] max-w-[1180px];
 }
 
 @utility active-nav {
-  @apply underline decoration-wavy decoration-2 underline-offset-8;
+  @apply text-foreground relative;
 }
 
 :target {
   scroll-margin-block: 1rem;
+}
+
+.active-nav::after {
+  background: var(--accent);
+  border-radius: 999px;
+  bottom: -0.35rem;
+  content: "";
+  height: 2px;
+  left: 50%;
+  position: absolute;
+  transform: translateX(-50%);
+  width: 1.75rem;
 }

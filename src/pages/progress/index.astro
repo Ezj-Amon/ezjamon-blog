@@ -1,0 +1,74 @@
+---
+import { getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Footer from "@/components/Footer.astro";
+import Datetime from "@/components/Datetime.astro";
+import config from "@/config";
+
+const locale = Astro.currentLocale ?? config.site.lang;
+
+const statusLabels = {
+  active: "进行中",
+  planned: "计划中",
+  paused: "暂停",
+  done: "已完成",
+};
+
+const progressItems = (
+  await getCollection("progress", ({ data }) => !data.draft)
+).sort(
+  (a, b) =>
+    new Date(b.data.pubDatetime).getTime() -
+    new Date(a.data.pubDatetime).getTime()
+);
+---
+
+<Layout title={`进展 | ${config.site.title}`}>
+  <Header />
+
+  <Main
+    pageTitle="进展"
+    pageDesc="记录最近正在推进、计划和完成的事情。"
+    wide
+  >
+    <ul class="grid gap-3">
+      {
+        progressItems.map(item => (
+          <li>
+            <article class="border-border bg-background rounded-lg border p-4 transition hover:border-accent/70 hover:shadow-lg hover:shadow-black/5">
+              <div class="mb-3 flex flex-wrap items-center gap-2">
+                <span class="bg-accent text-accent-foreground rounded-md px-2 py-1 text-xs font-semibold">
+                  {statusLabels[item.data.status]}
+                </span>
+                <Datetime
+                  class="text-xs [&>svg]:hidden [&_time]:text-xs"
+                  pubDatetime={item.data.pubDatetime}
+                />
+              </div>
+              <a
+                href={getRelativeLocaleUrl(locale, `progress/${item.id}/`)}
+                class="hover:text-accent text-lg font-bold"
+              >
+                {item.data.title}
+              </a>
+              {item.data.description && (
+                <p class="text-muted-foreground mt-2 text-sm leading-6">
+                  {item.data.description}
+                </p>
+              )}
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+
+    {progressItems.length === 0 && (
+      <p class="text-muted-foreground">还没有进展记录。</p>
+    )}
+  </Main>
+
+  <Footer />
+</Layout>

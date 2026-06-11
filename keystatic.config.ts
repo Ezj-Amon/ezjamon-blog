@@ -49,6 +49,16 @@ const postFields = (extension: "md" | "mdx") => ({
     label: "Draft",
     defaultValue: false,
   }),
+  category: fields.text({
+    label: "Primary category",
+    description:
+      "Optional first-level grouping. If empty, the first tag is used on index pages.",
+  }),
+  subcategory: fields.text({
+    label: "Secondary category",
+    description:
+      "Optional second-level grouping shown before regular tags.",
+  }),
   tags: fields.array(fields.text({ label: "Tag" }), {
     label: "Tags",
     itemLabel: props => props.value,
@@ -120,6 +130,12 @@ const resourceFields = {
     label: "Published date",
     defaultValue: { kind: "now" },
   }),
+  category: fields.text({
+    label: "Primary category",
+  }),
+  subcategory: fields.text({
+    label: "Secondary category",
+  }),
   tags: fields.array(fields.text({ label: "Tag" }), {
     label: "Tags",
     itemLabel: props => props.value,
@@ -130,6 +146,47 @@ const resourceFields = {
   }),
   body: fields.mdx({
     label: "Content",
+    extension: "md",
+  }),
+};
+
+const progressFields = {
+  title: fields.slug({
+    name: {
+      label: "Title",
+      validation: { isRequired: true },
+    },
+    slug: {
+      label: "File slug",
+    },
+  }),
+  description: fields.text({
+    label: "Description",
+    multiline: true,
+  }),
+  pubDatetime: fields.datetime({
+    label: "Date",
+    defaultValue: { kind: "now" },
+  }),
+  status: fields.select({
+    label: "Status",
+    defaultValue: "active",
+    options: [
+      { label: "Active", value: "active" },
+      { label: "Planned", value: "planned" },
+      { label: "Paused", value: "paused" },
+      { label: "Done", value: "done" },
+    ],
+  }),
+  url: fields.url({
+    label: "URL",
+  }),
+  draft: fields.checkbox({
+    label: "Draft",
+    defaultValue: false,
+  }),
+  body: fields.mdx({
+    label: "Notes",
     extension: "md",
   }),
 };
@@ -176,6 +233,7 @@ export default config({
         "postsMdx",
         "postsMarkdown",
         "resources",
+        "progress",
         "pages",
       ],
     },
@@ -216,6 +274,18 @@ export default config({
       },
       columns: ["title", "type", "draft"],
       schema: resourceFields,
+    }),
+    progress: collection({
+      label: "Progress",
+      path: "src/content/progress/**",
+      slugField: "title",
+      entryLayout: "content",
+      format: {
+        data: "yaml",
+        contentField: "body",
+      },
+      columns: ["title", "status", "pubDatetime", "draft"],
+      schema: progressFields,
     }),
     pages: collection({
       label: "Pages",

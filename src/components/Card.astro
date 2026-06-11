@@ -1,31 +1,216 @@
 ---
 import type { CollectionEntry } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
 import { getPostUrl } from "@/utils/getPostPaths";
 import { toTransitionName } from "@/utils/toTransitionName";
+import {
+  getEntryCategory,
+  getEntrySecondaryTags,
+} from "@/utils/getContentTaxonomy";
+import config from "@/config";
 import Datetime from "./Datetime.astro";
 
 type Props = {
   variant?: "h2" | "h3";
+  emphasis?: "standard" | "featured";
+  display?: "grid" | "row";
 } & CollectionEntry<"posts">;
 
-const { variant: Heading = "h2", id, data, filePath } = Astro.props;
+const {
+  variant: Heading = "h2",
+  emphasis = "standard",
+  display = "grid",
+  id,
+  body,
+  data,
+  filePath,
+} = Astro.props;
 
-const { title, description, ...props } = data;
+function getBodyCoverSrc(body?: string) {
+  if (!body) return undefined;
+
+  const htmlImage = body.match(/<img\b[\s\S]*?\bsrc=(["'])(.*?)\1/i)?.[2];
+  const markdownImage = body.match(
+    /!\[[^\]]*]\(([^)\s]+)(?:\s+"[^"]*")?\)/
+  )?.[1];
+  const candidate = htmlImage ?? markdownImage;
+
+  if (!candidate) return undefined;
+  if (candidate.startsWith("http://") || candidate.startsWith("https://")) {
+    return candidate;
+  }
+  if (candidate.startsWith("/")) return candidate;
+
+  return undefined;
+}
+
+const { title, description, ogImage, ...props } = data;
+const locale = Astro.currentLocale ?? config.site.lang;
+const href = getPostUrl(id, filePath, locale);
+const explicitCoverSrc =
+  typeof ogImage === "string"
+    ? ogImage.startsWith("http://") ||
+      ogImage.startsWith("https://") ||
+      ogImage.startsWith("/")
+      ? ogImage
+      : undefined
+    : ogImage?.src;
+const coverSrc =
+  explicitCoverSrc ?? getBodyCoverSrc(body);
+const { category, categoryName } = getEntryCategory(Astro.props);
+const secondaryTags = getEntrySecondaryTags(Astro.props).slice(0, 3);
+const isRow = display === "row";
+const fallbackTone =
+  category === "版本更新" || categoryName.includes("版本")
+    ? "from-slate-950 via-slate-800 to-teal-950"
+    : categoryName.includes("搜索") || categoryName.includes("AI")
+      ? "from-slate-900 via-teal-950 to-slate-800"
+      : categoryName.includes("博客")
+        ? "from-slate-100 via-white to-slate-200"
+        : "from-teal-900 via-teal-700 to-emerald-600";
 ---
 
-<li class="my-6">
-  <a
-    href={getPostUrl(id, filePath, Astro.currentLocale)}
+<li
+  class:list={[
+    "group",
+    { "md:col-span-2": emphasis === "featured" && coverSrc && !isRow },
+  ]}
+>
+  <article
     class:list={[
-      "text-accent inline-block text-lg font-medium",
-      "decoration-dashed underline-offset-4 hover:underline",
-      "focus-visible:no-underline focus-visible:underline-offset-0",
+      "border-border bg-background h-full overflow-hidden rounded-lg border transition",
+      "hover:border-accent/70 hover:shadow-lg hover:shadow-black/5",
+      "dark:hover:shadow-black/20",
+      isRow
+        ? "grid grid-cols-[7.5rem_minmax(0,1fr)] items-center gap-3 p-2 sm:grid-cols-[8.75rem_minmax(0,1fr)_auto]"
+        : "grid",
+      !isRow ? "hover:-translate-y-0.5" : "",
+      coverSrc && emphasis === "featured" && !isRow
+        ? "md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)]"
+        : "",
     ]}
   >
-    <Heading transition:name={toTransitionName(title)}>
-      {title}
-    </Heading>
-  </a>
-  <Datetime {...props} />
-  <p>{description}</p>
+    {
+      coverSrc ? (
+        <a
+          href={href}
+          class:list={[
+            "bg-muted block overflow-hidden rounded-md",
+            emphasis === "featured" && !isRow ? "md:order-2" : "",
+          ]}
+          aria-label={title}
+        >
+          <img
+            src={coverSrc}
+            alt=""
+            loading="lazy"
+            class:list={[
+              "w-full object-cover transition duration-300 group-hover:scale-[1.03]",
+              isRow ? "h-20 sm:h-24" : "h-[7.75rem] sm:h-32",
+              emphasis === "featured" && !isRow ? "md:h-full" : "",
+            ]}
+          />
+        </a>
+      ) : (
+        <a
+          href={href}
+          class:list={[
+            "relative block overflow-hidden rounded-md bg-gradient-to-br",
+            fallbackTone,
+            isRow ? "h-20 sm:h-24" : "h-[7.75rem] sm:h-32",
+          ]}
+          aria-label={title}
+        >
+          <span class="absolute inset-x-4 top-4 h-px bg-white/25" />
+          <span class="absolute right-4 bottom-4 left-4 rounded-md border border-white/20 bg-white/15 p-3 backdrop-blur-sm">
+            <span class="block text-xs font-semibold text-white/80">
+              {categoryName}
+            </span>
+            <span class="mt-2 block h-2 w-2/3 rounded-full bg-white/60" />
+            <span class="mt-2 block h-2 w-1/2 rounded-full bg-white/35" />
+          </span>
+        </a>
+      )
+    }
+
+    <div
+      class:list={[
+        "flex min-w-0 flex-col",
+        isRow ? "py-1 pr-2" : "p-3",
+        emphasis === "featured" && !isRow ? "sm:p-4" : "",
+      ]}
+    >
+      <div
+        class:list={[
+          "flex flex-wrap items-center gap-2",
+          isRow ? "mb-1" : "mb-3",
+        ]}
+      >
+        {!isRow && (
+          <a
+            href={getRelativeLocaleUrl(locale, `categories/${category}/`)}
+            class="bg-accent text-accent-foreground rounded-md px-2 py-1 text-xs font-semibold"
+          >
+            {categoryName}
+          </a>
+        )}
+        {!isRow && (
+          <Datetime class="[&>svg]:hidden" size="sm" {...props} />
+        )}
+      </div>
+
+      <a href={href} class="focus-visible:outline-accent rounded-sm">
+        <Heading
+          transition:name={toTransitionName(title)}
+          class:list={[
+            "group-hover:text-accent leading-snug font-semibold",
+            isRow
+              ? "line-clamp-1 text-sm sm:text-base"
+              : emphasis === "featured"
+                ? "text-lg sm:text-xl"
+                : "text-lg",
+          ]}
+        >
+          {title}
+        </Heading>
+      </a>
+
+      <p
+        class:list={[
+          "text-muted-foreground",
+          isRow
+            ? "mt-1 line-clamp-1 text-xs leading-5 sm:text-sm"
+            : "mt-2 line-clamp-1 text-sm leading-6",
+        ]}
+      >
+        {description}
+      </p>
+
+      <div
+        class:list={[
+          "mt-auto flex flex-wrap gap-2",
+          isRow ? "pt-2" : "pt-3",
+        ]}
+      >
+        {
+          secondaryTags.map(({ tag, tagName }) => (
+            <a
+              href={getRelativeLocaleUrl(locale, `tags/${tag}/`)}
+              class="bg-muted text-muted-foreground hover:text-accent rounded-md px-2 py-1 text-xs font-medium transition"
+            >
+              {tagName}
+            </a>
+          ))
+        }
+      </div>
+    </div>
+
+    {isRow && (
+      <Datetime
+        class="hidden min-w-24 justify-end pr-2 text-right sm:flex [&>svg]:hidden"
+        size="sm"
+        {...props}
+      />
+    )}
+  </article>
 </li>

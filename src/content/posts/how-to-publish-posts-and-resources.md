@@ -43,6 +43,8 @@ pubDatetime: 2026-06-08T17:00:00+08:00
 author: "Amon"
 featured: false
 draft: false
+category: "一级分类"
+subcategory: "二级标签"
 tags:
   - 标签一
   - 标签二
@@ -57,15 +59,39 @@ tags:
 
 常用字段说明：
 
-| 字段          | 用途                       |
-| ------------- | -------------------------- |
-| `title`       | 文章标题                   |
-| `description` | 文章摘要                   |
-| `pubDatetime` | 发布时间                   |
-| `author`      | 作者                       |
-| `featured`    | 是否显示在首页「精选文章」 |
-| `draft`       | 是否草稿，`true` 不公开    |
-| `tags`        | 标签，用于分类和搜索       |
+| 字段          | 用途                               |
+| ------------- | ---------------------------------- |
+| `title`       | 文章标题                           |
+| `description` | 文章摘要                           |
+| `pubDatetime` | 发布时间                           |
+| `author`      | 作者                               |
+| `featured`    | 是否显示在首页「精选文章」         |
+| `draft`       | 是否草稿，`true` 不公开            |
+| `category`    | 一级分类，用于分类页和首页主题索引 |
+| `subcategory` | 二级标签，会和 `tags` 一起展示     |
+| `tags`        | 普通标签，用于标签页和搜索         |
+
+`category` 和 `subcategory` 都可以不填。网站会根据路径和标签做保守推断，例如版本更新、建站笔记、前端开发、游戏资料、视觉主题、博客建设、AI 搜索等。
+
+如果你已经明确知道这篇文章属于哪个栏目，建议手动填写：
+
+```yaml
+category: "AI 搜索"
+subcategory: "GEO"
+tags:
+  - SEO
+  - 初创产品
+```
+
+### 文章封面规则
+
+文章列表卡片会按顺序找封面：
+
+1. 优先使用 frontmatter 里的 `ogImage`
+2. 如果没有 `ogImage`，尝试使用正文第一张远程图片或 `/public` 绝对路径图片
+3. 如果正文也没有可用图片，就显示无图文字卡片
+
+所以不是每篇文章都必须配图。需要强控制列表封面时再填 `ogImage`；普通笔记、资料说明、短文章可以不配图。
 
 ### 收藏模板
 
@@ -93,6 +119,8 @@ url: "https://example.com"
 type: "bookmark"
 source: "来源名称"
 pubDatetime: 2026-06-08T17:00:00+08:00
+category: "资源收藏"
+subcategory: "视频"
 tags:
   - 标签一
   - 标签二
@@ -112,6 +140,8 @@ draft: false
 | `repo`     | GitHub 等代码仓库   |
 | `game`     | 游戏或游戏资料      |
 
+收藏也支持 `category` 和 `subcategory`。如果不填，会根据 `type` 自动推断：`game` 会进入「游戏资料」，视频、课程、工具、收藏、代码会进入「资源收藏」。
+
 例如记录一个 B 站视频：
 
 ```md
@@ -122,6 +152,8 @@ url: "https://www.bilibili.com/video/xxx"
 type: "video"
 source: "Bilibili"
 pubDatetime: 2026-06-08T17:00:00+08:00
+category: "资源收藏"
+subcategory: "视频"
 tags:
   - Vue
   - 前端

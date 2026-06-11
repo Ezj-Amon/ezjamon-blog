@@ -1,9 +1,10 @@
 import type { CollectionEntry } from "astro:content";
-import { slugifyStr } from "./slugify";
+import { getEntrySecondaryTags } from "./getContentTaxonomy";
 
 type Tag = {
   tag: string;
   tagName: string;
+  count: number;
 };
 
 type TaggedEntry = CollectionEntry<"posts"> | CollectionEntry<"resources">;
@@ -15,13 +16,17 @@ type TaggedEntry = CollectionEntry<"posts"> | CollectionEntry<"resources">;
  * - Uniqueness is based on the slug (so differently-cased labels collapse)
  */
 export function getUniqueTags(entries: TaggedEntry[]) {
-  const tags: Tag[] = entries
-    .flatMap(entry => entry.data.tags)
-    .map(tag => ({ tag: slugifyStr(tag), tagName: tag }))
-    .filter(
-      (value, index, self) =>
-        self.findIndex(tag => tag.tag === value.tag) === index
-    )
-    .sort((tagA, tagB) => tagA.tag.localeCompare(tagB.tag));
-  return tags;
+  const tagMap = new Map<string, Tag>();
+
+  entries.forEach(entry => {
+    getEntrySecondaryTags(entry).forEach(({ tag, tagName }) => {
+      const current = tagMap.get(tag) ?? { tag, tagName, count: 0 };
+      current.count += 1;
+      tagMap.set(tag, current);
+    });
+  });
+
+  return Array.from(tagMap.values()).sort(
+    (tagA, tagB) => tagB.count - tagA.count || tagA.tag.localeCompare(tagB.tag)
+  );
 }

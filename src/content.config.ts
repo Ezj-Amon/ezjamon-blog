@@ -17,6 +17,8 @@ const posts = defineCollection({
       slug: z.string().optional(),
       featured: z.boolean().optional(),
       draft: z.boolean().optional(),
+      category: z.string().optional(),
+      subcategory: z.string().optional(),
       tags: z.array(z.string()).default(["others"]),
       ogImage: image().or(z.string()).optional(),
       description: z.string(),
@@ -50,9 +52,28 @@ const resources = defineCollection({
       .default("bookmark"),
     source: z.string().optional(),
     pubDatetime: z.date().default(() => new Date()),
+    category: z.string().optional(),
+    subcategory: z.string().optional(),
     tags: z.array(z.string()).default([]),
     draft: z.boolean().optional(),
   }),
 });
 
-export const collections = { posts, pages, resources };
+const progress = defineCollection({
+  loader: glob({
+    pattern: "**/[^_]*.{md,mdx}",
+    base: "./src/content/progress",
+  }),
+  schema: z.object({
+    title: z.string(),
+    description: z.string().optional(),
+    pubDatetime: z.date().default(() => new Date()),
+    status: z
+      .enum(["active", "planned", "paused", "done"])
+      .default("active"),
+    url: z.string().optional(),
+    draft: z.boolean().optional(),
+  }),
+});
+
+export const collections = { posts, pages, resources, progress };

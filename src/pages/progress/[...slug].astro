@@ -1,0 +1,62 @@
+---
+import { getCollection, render } from "astro:content";
+import type { GetStaticPaths } from "astro";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Breadcrumb from "@/components/Breadcrumb.astro";
+import Footer from "@/components/Footer.astro";
+import Datetime from "@/components/Datetime.astro";
+import config from "@/config";
+
+export const getStaticPaths = (async () => {
+  const progressItems = await getCollection(
+    "progress",
+    ({ data }) => !data.draft
+  );
+
+  return progressItems.map(item => ({
+    params: { slug: item.id },
+    props: { item },
+  }));
+}) satisfies GetStaticPaths;
+
+const { item } = Astro.props;
+const { Content } = await render(item);
+
+const statusLabels = {
+  active: "进行中",
+  planned: "计划中",
+  paused: "暂停",
+  done: "已完成",
+};
+---
+
+<Layout
+  title={`${item.data.title} | ${config.site.title}`}
+  description={item.data.description}
+>
+  <Header />
+  <Breadcrumb />
+
+  <Main
+    pageTitle={item.data.title}
+    pageDesc={item.data.description ?? "进展记录"}
+  >
+    <div class="mb-6 flex flex-wrap items-center gap-2">
+      <span class="bg-accent text-accent-foreground rounded-md px-2 py-1 text-xs font-semibold">
+        {statusLabels[item.data.status]}
+      </span>
+      <Datetime
+        class="text-xs [&>svg]:hidden [&_time]:text-xs"
+        pubDatetime={item.data.pubDatetime}
+      />
+    </div>
+
+    <article class="app-prose max-w-app">
+      <Content />
+    </article>
+  </Main>
+
+  <Footer />
+</Layout>

@@ -7,6 +7,7 @@ type Props = {
   pageDesc?: string;
   class?: string;
   pagefindBody?: boolean;
+  wide?: boolean;
 };
 
 const {
@@ -14,6 +15,7 @@ const {
   pageDesc,
   class: className,
   pagefindBody = true,
+  wide = false,
 } = Astro.props;
 
 const locale = Astro.currentLocale ?? config.site.lang;
@@ -26,10 +28,18 @@ const backUrl = config.features.showBackButton
   data-backUrl={backUrl}
   data-pagefind-body={pagefindBody ? "" : undefined}
   id="main-content"
-  class:list={["app-layout pb-4", className]}
+  class:list={[
+    "app-layout border-border bg-background border-x border-b px-5 pt-5 pb-8 shadow-[0_24px_55px_rgba(15,23,42,0.07)] sm:px-8 sm:pt-7 sm:pb-10",
+    wide ? "" : "max-w-app",
+    className,
+  ]}
 >
-  <h1 class="text-2xl font-semibold sm:text-3xl">{pageTitle}</h1>
-  <p class="mt-2 mb-6 italic">{pageDesc}</p>
+  <h1 class="text-3xl leading-none font-bold tracking-[-0.01em] sm:text-4xl">
+    {pageTitle}
+  </h1>
+  <p class="text-muted-foreground mt-2 mb-6 text-sm font-medium">
+    {pageDesc}
+  </p>
   <slot />
 </main>
 

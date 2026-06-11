@@ -1,6 +1,5 @@
 ---
 import { getCollection } from "astro:content";
-import { getRelativeLocaleUrl } from "astro:i18n";
 import type { GetStaticPathsOptions } from "astro";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
@@ -9,24 +8,24 @@ import Breadcrumb from "@/components/Breadcrumb.astro";
 import Datetime from "@/components/Datetime.astro";
 import Footer from "@/components/Footer.astro";
 import Pagination from "@/components/Pagination.astro";
-import { getUniqueTags } from "@/utils/getUniqueTags";
+import Tag from "@/components/Tag.astro";
+import {
+  entryHasCategory,
+  getContentTaxonomy,
+} from "@/utils/getContentTaxonomy";
 import { getSortedPosts } from "@/utils/getSortedPosts";
-import { entryHasTag, getEntryCategory } from "@/utils/getContentTaxonomy";
 import { getPostUrl } from "@/utils/getPostPaths";
 import { postFilter } from "@/utils/postFilter";
 import { resourceTypeLabels } from "@/utils/resourceTypeLabels";
-import { useTranslations } from "@/i18n";
 import config from "@/config";
 
-type TagPageItem = {
+type CategoryPageItem = {
   title: string;
   description: string;
   href: string;
   pubDatetime: Date;
   modDatetime?: Date | null;
   label: string;
-  category: string;
-  categoryName: string;
   source?: string;
   external?: boolean;
 };
@@ -40,88 +39,85 @@ export async function getStaticPaths({ paginate }: GetStaticPathsOptions) {
       new Date(b.data.pubDatetime).getTime() -
       new Date(a.data.pubDatetime).getTime()
   );
-  const tags = getUniqueTags([...posts, ...resources]);
+  const entries = [...posts, ...resources];
+  const taxonomy = getContentTaxonomy(entries);
 
-  return tags.flatMap(({ tag, tagName }) => {
-    const tagItems: TagPageItem[] = [
+  return taxonomy.flatMap(group => {
+    const categoryItems: CategoryPageItem[] = [
       ...posts
-        .filter(post => entryHasTag(post, tag))
-        .map(post => {
-          const category = getEntryCategory(post);
-          return {
-            title: post.data.title,
-            description: post.data.description,
-            href: getPostUrl(post.id, post.filePath, config.site.lang),
-            pubDatetime: post.data.pubDatetime,
-            modDatetime: post.data.modDatetime,
-            category: category.category,
-            categoryName: category.categoryName,
-            label: "文章",
-          };
-        }),
+        .filter(post => entryHasCategory(post, group.category))
+        .map(post => ({
+          title: post.data.title,
+          description: post.data.description,
+          href: getPostUrl(post.id, post.filePath, config.site.lang),
+          pubDatetime: post.data.pubDatetime,
+          modDatetime: post.data.modDatetime,
+          label: "文章",
+        })),
       ...resources
-        .filter(resource => entryHasTag(resource, tag))
-        .map(resource => {
-          const category = getEntryCategory(resource);
-          return {
-            title: resource.data.title,
-            description: resource.data.description,
-            href: resource.data.url,
-            pubDatetime: resource.data.pubDatetime,
-            modDatetime: undefined,
-            category: category.category,
-            categoryName: category.categoryName,
-            label: resourceTypeLabels[resource.data.type],
-            source: resource.data.source,
-            external: true,
-          };
-        }),
+        .filter(resource => entryHasCategory(resource, group.category))
+        .map(resource => ({
+          title: resource.data.title,
+          description: resource.data.description,
+          href: resource.data.url,
+          pubDatetime: resource.data.pubDatetime,
+          modDatetime: undefined,
+          label: resourceTypeLabels[resource.data.type],
+          source: resource.data.source,
+          external: true,
+        })),
     ].sort(
       (a, b) =>
         new Date(b.modDatetime ?? b.pubDatetime).getTime() -
         new Date(a.modDatetime ?? a.pubDatetime).getTime()
     );
 
-    return paginate(tagItems, {
-      params: { tag },
-      props: { tagName },
+    return paginate(categoryItems, {
+      params: { category: group.category },
+      props: {
+        categoryName: group.categoryName,
+        categoryTags: group.tags,
+      },
       pageSize: config.posts.perPage,
     });
   });
 }
 
-const { page, tagName } = Astro.props;
-
-const locale = Astro.currentLocale ?? config.site.lang;
-const t = useTranslations(locale);
+const { page, categoryName, categoryTags } = Astro.props;
 ---
 
-<Layout title={`${t.pages.tagTitle}: ${tagName} | ${config.site.title}`}>
+<Layout title={`分类: ${categoryName} | ${config.site.title}`}>
   <Header />
 
   <Breadcrumb />
 
   <Main
-    pageTitle={`${t.pages.tagTitle}: ${tagName}`}
-    pageDesc={`${t.pages.tagDesc} "${tagName}".`}
+    pageTitle={`分类: ${categoryName}`}
+    pageDesc={`共 ${page.total} 条内容。`}
     wide
   >
+    {
+      categoryTags.length > 0 && (
+        <ul class="border-border mb-8 flex flex-wrap gap-2 border-b pb-6">
+          {categoryTags.map(tag => (
+            <Tag
+              tag={tag.tag}
+              tagName={tag.tagName}
+              count={tag.count}
+              size="sm"
+            />
+          ))}
+        </ul>
+      )
+    }
+
     <ul class="grid gap-4 md:grid-cols-2">
       {
         page.data.map(item => (
           <li>
             <article class="border-border bg-background hover:border-accent/70 flex h-full flex-col rounded-lg border p-5 transition hover:-translate-y-0.5">
               <div class="text-muted-foreground mb-4 flex flex-wrap items-center gap-2 text-sm">
-                <a
-                  href={getRelativeLocaleUrl(
-                    locale,
-                    `categories/${item.category}/`
-                  )}
-                  class="bg-accent text-accent-foreground rounded-md px-2 py-1 text-xs font-semibold"
-                >
-                  {item.categoryName}
-                </a>
-                <span class="bg-muted rounded-md px-2 py-1 text-xs font-medium">
+                <span class="bg-accent text-accent-foreground rounded-md px-2 py-1 text-xs font-semibold">
                   {item.label}
                 </span>
                 {item.source && <span>{item.source}</span>}
