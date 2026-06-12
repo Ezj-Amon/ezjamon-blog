@@ -20,6 +20,7 @@ export default {
     backToTop: "回到顶部",
     goBack: "返回",
     editPage: "编辑页面",
+    tocTitle: "本文目录",
     previousPost: "上一篇",
     nextPost: "下一篇",
   },

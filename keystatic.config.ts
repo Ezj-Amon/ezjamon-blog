@@ -124,19 +124,19 @@ const postFields = (extension: "md" | "mdx") => ({
       validation: { isRequired: true },
     },
     slug: {
-      label: "文件名 / URL 路径",
+      label: "文件名 / URL 路径（通常自动生成）",
       description:
-        "决定文章文件路径和公开访问地址。可用英文、数字和短横线；需要子文件夹时用斜杠分隔。",
+        "决定文章文件路径和公开访问地址。一般用标题自动生成即可；需要子文件夹时用斜杠分隔。",
     },
   }),
   slug: fields.text({
     label: "旧版 slug（一般留空）",
     description:
-      "兼容旧版 AstroPaper 文章的字段。现在网站地址主要由上面的“文件名 / URL 路径”决定。",
+      "通常不用填。这里只用于兼容旧版 AstroPaper 文章，现在网站地址主要由上面的“文件名 / URL 路径”决定。",
   }),
   author: fields.text({
-    label: "作者",
-    description: "留空时会使用 AstroPaper 配置里的默认作者。",
+    label: "作者（通常留空）",
+    description: "留空时会使用站点默认作者 Amon。",
   }),
   pubDatetime: fields.datetime({
     label: "发布时间",
@@ -144,9 +144,9 @@ const postFields = (extension: "md" | "mdx") => ({
     validation: { isRequired: true },
   }),
   scheduled: fields.checkbox({
-    label: "定时发布",
+    label: "到发布时间后自动公开",
     description:
-      "勾选后，只有到达上面的发布时间才会在生产环境显示；不勾选则按普通文章处理。",
+      "勾选后，只有到达上面的发布时间才会在生产环境显示。即时发布的文章不用勾选。",
     defaultValue: false,
   }),
   modDatetime: fields.datetime({
@@ -154,24 +154,26 @@ const postFields = (extension: "md" | "mdx") => ({
     description: "填写后会用于文章排序、RSS 和页面里的“更新于”。不需要时可以留空。",
   }),
   description: fields.text({
-    label: "文章摘要",
+    label: "文章摘要（搜索和列表会显示）",
     multiline: true,
+    description:
+      "用 1-2 句话说明这篇文章解决什么问题。发布前建议确认它适合出现在搜索结果、文章列表和 SEO 描述里。",
     validation: { isRequired: true },
   }),
   featured: fields.checkbox({
-    label: "设为精选文章",
-    description: "勾选后可能出现在首页“精选文章”区域。",
+    label: "放到首页精选",
+    description: "勾选后可能出现在首页“精选文章”区域。适合长期有价值或最想推荐的内容。",
     defaultValue: false,
   }),
   draft: fields.checkbox({
-    label: "草稿",
-    description: "勾选后不会公开发布，适合先保存未完成的文章。",
+    label: "草稿，不公开显示",
+    description: "写完准备发布前，记得取消勾选。",
     defaultValue: false,
   }),
   category: fields.text({
     label: "一级分类",
     description:
-      "可选。用于文章列表里的主分类；留空时会用第一个标签作为分类显示。",
+      "用于文章列表里的主分类。建议填写稳定主题，比如 AI 搜索、建站笔记、前端开发。",
   }),
   subcategory: fields.text({
     label: "二级分类",
@@ -183,8 +185,9 @@ const postFields = (extension: "md" | "mdx") => ({
       "可一次输入多个标签。支持用逗号、顿号、分号、换行或两个以上空格分隔；保存时会自动去重。",
   }),
   ogImage: fields.text({
-    label: "分享图 / OG 图片",
-    description: "用于社交平台分享预览。可以填远程图片 URL，或相对当前文章文件的图片路径。",
+    label: "分享图 / OG 图片（可选）",
+    description:
+      "用于社交平台分享预览。可以填远程图片 URL，或相对当前文章文件的图片路径；留空时使用默认分享图。",
   }),
   canonicalURL: fields.text({
     label: "规范链接（可选）",
@@ -196,8 +199,8 @@ const postFields = (extension: "md" | "mdx") => ({
     defaultValue: false,
   }),
   timezone: fields.text({
-    label: "时区",
-    description: "可选。默认 Asia/Shanghai，通常不用改。",
+    label: "时区（通常不用改）",
+    description: "默认 Asia/Shanghai。只有文章需要特殊时区展示时再修改。",
     defaultValue: "Asia/Shanghai",
   }),
   body:
@@ -205,7 +208,7 @@ const postFields = (extension: "md" | "mdx") => ({
       ? rawContentField({
           label: "MDX 原文内容",
           description:
-            "高级文章使用原文编辑，支持 import、Astro/React 组件和复杂 JSX。普通文章建议使用 Markdown 入口。",
+            "只有需要 import、Astro/React 组件或复杂 JSX 时才使用这个入口。普通文章建议使用“写普通文章”。",
           extension,
         })
       : fields.mdx({
@@ -227,13 +230,21 @@ const resourceFields = {
       validation: { isRequired: true },
     },
     slug: {
-      label: "文件名 / URL 路径",
+      label: "文件名 / URL 路径（通常自动生成）",
+      description: "一般用标题自动生成即可。需要分目录时再手动调整。",
     },
   }),
   description: fields.text({
-    label: "简介",
+    label: "简介（前台卡片会显示）",
     multiline: true,
+    description: "客观说明这个资源是什么。尽量短一点，方便列表浏览。",
     validation: { isRequired: true },
+  }),
+  note: fields.text({
+    label: "收藏理由 / 使用场景",
+    multiline: true,
+    description:
+      "可选。写一句你为什么留这个资源，或者什么时候会用到它。前台会优先展示这句个人判断。",
   }),
   url: fields.url({
     label: "链接 URL",
@@ -253,17 +264,20 @@ const resourceFields = {
     ],
   }),
   source: fields.text({
-    label: "来源",
+    label: "来源（可选）",
+    description: "例如 抖音、B 站、GitHub、官方文档。",
   }),
   pubDatetime: fields.datetime({
-    label: "发布日期",
+    label: "收藏时间",
     defaultValue: { kind: "now" },
   }),
   category: fields.text({
     label: "一级分类",
+    description: "例如 游戏资料、资源收藏、AI 搜索。",
   }),
   subcategory: fields.text({
     label: "二级分类",
+    description: "会显示在普通标签之前，适合写更细的用途或类型。",
   }),
   tags: tagListField({
     label: "标签",
@@ -271,11 +285,12 @@ const resourceFields = {
       "可一次输入多个标签。支持用逗号、顿号、分号、换行或两个以上空格分隔；保存时会自动去重。",
   }),
   draft: fields.checkbox({
-    label: "草稿",
+    label: "草稿，不公开显示",
+    description: "先存着但暂时不想展示到前台时勾选。",
     defaultValue: false,
   }),
   body: fields.mdx({
-    label: "补充说明",
+    label: "补充说明（可选）",
     extension: "md",
   }),
 };
@@ -359,18 +374,15 @@ export default config({
       name: "Amon 博客后台",
     },
     navigation: {
-      内容管理: [
-        "postsMdx",
-        "postsMarkdown",
-        "resources",
-        "progress",
-        "pages",
-      ],
+      写作: ["postsMarkdown", "postsMdx"],
+      资料库: ["resources"],
+      动态: ["progress"],
+      站点维护: ["pages"],
     },
   },
   collections: {
     postsMdx: collection({
-      label: "文章（MDX，高级）",
+      label: "写高级 MDX 文章",
       path: "src/content/posts/**",
       slugField: "title",
       entryLayout: "content",
@@ -382,7 +394,7 @@ export default config({
       schema: postFields("mdx"),
     }),
     postsMarkdown: collection({
-      label: "文章（Markdown，常用）",
+      label: "写普通文章",
       path: "src/content/posts/**",
       slugField: "title",
       entryLayout: "content",
@@ -402,7 +414,7 @@ export default config({
         data: "yaml",
         contentField: "body",
       },
-      columns: ["title", "type", "draft"],
+      columns: ["title", "type", "source", "draft"],
       schema: resourceFields,
     }),
     progress: collection({

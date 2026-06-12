@@ -105,7 +105,10 @@ const homePath = getRelativeLocaleUrl(locale, "");
       >
         <div class="p-5">
           <h2 class="flex items-center gap-2 text-lg font-bold">
-            <span class="bg-accent/10 text-accent rounded-md px-2 py-1 text-sm">
+            <span
+              class="bg-accent/10 text-accent rounded-md px-2 py-1 text-sm"
+              aria-hidden="true"
+            >
               ↗
             </span>
             最近在折腾
@@ -216,7 +219,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
       </div>
       <ul
         data-resource-strip
-        class="flex snap-x gap-4 overflow-x-auto scroll-smooth pb-1"
+        class="flex snap-x gap-4 overflow-x-auto scroll-smooth pb-1 pr-10 sm:pr-0"
       >
         {
           resources.slice(0, 8).map(resource => {
@@ -227,7 +230,10 @@ const homePath = getRelativeLocaleUrl(locale, "");
               <li class="min-w-[calc(100%-0.25rem)] snap-start sm:min-w-[calc((100%-2rem)/3)]">
                 <article class="border-border bg-background flex h-full flex-col rounded-lg border p-3 transition hover:border-accent/70 hover:shadow-lg hover:shadow-black/5">
                   <div class="mb-3 flex items-center gap-2 text-xs font-semibold">
-                    <span class="bg-accent/10 text-accent rounded-md px-2 py-1">
+                    <span
+                      class="bg-accent/10 text-accent rounded-md px-2 py-1"
+                      aria-hidden="true"
+                    >
                       ◴
                     </span>
                     <a
@@ -251,9 +257,17 @@ const homePath = getRelativeLocaleUrl(locale, "");
                   >
                     {resource.data.title}
                   </a>
-                  <p class="text-muted-foreground mt-1 line-clamp-1 text-sm leading-6">
-                    {resource.data.description}
-                  </p>
+                  {
+                    resource.data.note ? (
+                      <p class="text-muted-foreground mt-1 line-clamp-1 text-sm leading-6">
+                        记：{resource.data.note}
+                      </p>
+                    ) : (
+                      <p class="text-muted-foreground mt-1 line-clamp-1 text-sm leading-6">
+                        {resource.data.description}
+                      </p>
+                    )
+                  }
                   {resource.data.source && (
                     <p class="text-muted-foreground mt-2 text-xs">
                       来源：{resource.data.source}
@@ -305,7 +319,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
               href={getRelativeLocaleUrl(locale, "tags")}
               class="bg-muted hover:text-accent inline-flex rounded-md px-4 py-1.5 text-sm font-semibold"
             >
-              更多..
+              更多
             </a>
           </li>
         )}

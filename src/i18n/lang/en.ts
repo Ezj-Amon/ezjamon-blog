@@ -20,6 +20,7 @@ export default {
     backToTop: "Back to top",
     goBack: "Go back",
     editPage: "Edit page",
+    tocTitle: "Table of contents",
     previousPost: "Previous Post",
     nextPost: "Next Post",
   },

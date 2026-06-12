@@ -46,6 +46,7 @@ const resources = defineCollection({
   schema: z.object({
     title: z.string(),
     description: z.string(),
+    note: z.string().optional(),
     url: z.url(),
     type: z
       .enum(["article", "video", "course", "tool", "bookmark", "repo", "game"])
