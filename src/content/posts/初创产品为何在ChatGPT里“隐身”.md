@@ -1,10 +1,10 @@
 ---
 title: 初创产品为何在ChatGPT里“隐身”
 author: Amon
-pubDatetime: 2026-06-10T13:01:00+08:00
+pubDatetime: 2026-06-10T05:01:00.000Z
+scheduled: false
 description: GEO的真相
 featured: true
-scheduled: false
 draft: false
 tags:
   - GEO
@@ -13,6 +13,8 @@ hideEditPost: false
 timezone: Asia/Shanghai
 ---
 ### 🔥 你的初创产品为何在ChatGPT里“隐身”？研究了112家公司的残酷真相！
+
+![](/posts/%E5%88%9D%E5%88%9B%E4%BA%A7%E5%93%81%E4%B8%BA%E4%BD%95%E5%9C%A8ChatGPT%E9%87%8C%E2%80%9C%E9%9A%90%E8%BA%AB%E2%80%9D/26aca730-2e2b-470d-aa16-a1f49b4093af.avif)
 
 试想一下这样一个场景：当用户直接问ChatGPT“什么是Notion？”时，它能给出详尽、准确的介绍。但是，当用户问“今年有哪些好用的笔记软件推荐？”时，你的新产品可能连个影子都没有。
 
