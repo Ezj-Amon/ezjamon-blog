@@ -48,7 +48,7 @@ function tagListField({
         description,
         autoFocus: props.autoFocus,
         value: props.value.join(", "),
-        onChange: value => props.onChange(splitTags(value)),
+        onChange: (value: string) => props.onChange(splitTags(value)),
       });
     },
     defaultValue() {
