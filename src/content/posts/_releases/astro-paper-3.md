@@ -21,8 +21,8 @@ We're excited to announce the release of AstroPaper v3, packed with new features
 ### Astro v3 Integration
 
 <video autoplay loop="loop" muted="muted" plays-inline="true">
-  <source src="https://github.com/satnaing/astro-paper/assets/53733092/18fdb604-1ca3-41a0-8372-1367759091ff" type="video/mp4">
-  <!-- <source src="/assets/docs/astro-paper-v3-view-transitions-demo.mp4" type="video/mp4"> -->
+  <source src="https://github.com/satnaing/astro-paper/assets/53733092/18fdb604-1ca3-41a0-8372-1367759091ff" type="video/mp4" />
+  <!-- <source src="/assets/docs/astro-paper-v3-view-transitions-demo.mp4" type="video/mp4" /> -->
 </video>
 
 AstroPaper now fully supports [Astro v3](https://astro.build/blog/astro-3/), offering improved performance and rendering speed.
@@ -48,13 +48,13 @@ The theme-color meta tag has been added to dynamically adapt to theme switches, 
 **_AstroPaper v2 theme switch_**
 
 <video autoplay loop="loop" muted="muted" plays-inline="true">
-  <source src="https://github.com/satnaing/astro-paper/assets/53733092/3ab5a1e8-1891-4264-a5bb-0ded69143c1a" type="video/mp4">
+  <source src="https://github.com/satnaing/astro-paper/assets/53733092/3ab5a1e8-1891-4264-a5bb-0ded69143c1a" type="video/mp4" />
 </video>
 
 **_AstroPaper v3 theme switch_**
 
 <video autoplay loop="loop" muted="muted" plays-inline="true">
-  <source src="https://github.com/satnaing/astro-paper/assets/53733092/8ac9deb8-d1f8-4029-86bd-6aa0def380b4" type="video/mp4">
+  <source src="https://github.com/satnaing/astro-paper/assets/53733092/8ac9deb8-d1f8-4029-86bd-6aa0def380b4" type="video/mp4" />
 </video>
 
 ## Other Changes

@@ -41,9 +41,7 @@ const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const curatedPosts =
   featuredPosts.length >= 2 ? featuredPosts.slice(0, 2) : sortedPosts.slice(0, 2);
-const latestPosts = sortedPosts
-  .filter(post => !curatedPosts.some(featured => featured.id === post.id))
-  .slice(0, 4);
+const latestPosts = sortedPosts.slice(0, 4);
 const tags = getUniqueTags([...sortedPosts, ...resources]).slice(0, 16);
 const taxonomy = getContentTaxonomy([...sortedPosts, ...resources]);
 const homePath = getRelativeLocaleUrl(locale, "");
