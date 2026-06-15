@@ -1,0 +1,73 @@
+---
+import { getCollection } from "astro:content";
+import { getRelativeLocaleUrl } from "astro:i18n";
+import Layout from "@/layouts/Layout.astro";
+import Header from "@/components/Header.astro";
+import Main from "@/components/Main.astro";
+import Footer from "@/components/Footer.astro";
+import Tag from "@/components/Tag.astro";
+import { getContentTaxonomy } from "@/utils/getContentTaxonomy";
+import { postFilter } from "@/utils/postFilter";
+import { useTranslations } from "@/i18n";
+import config from "@/config";
+
+const posts = await getCollection("posts", postFilter);
+const resources = await getCollection("resources", ({ data }) => !data.draft);
+const taxonomy = getContentTaxonomy([...posts, ...resources]);
+
+const locale = Astro.currentLocale ?? config.site.lang;
+const t = useTranslations(locale);
+const formatCount = (count: number) =>
+  locale.startsWith("zh") ? `共 ${count} 条内容` : `${count} items`;
+---
+
+<Layout title={`${t.pages.categoriesTitle} | ${config.site.title}`}>
+  <Header />
+
+  <Main
+    pageTitle={t.pages.categoriesTitle}
+    pageDesc={t.pages.categoriesDesc}
+    wide
+  >
+    <ul class="grid gap-4 md:grid-cols-2">
+      {
+        taxonomy.map(group => (
+          <li>
+            <article class="border-border bg-background hover:border-accent/70 flex h-full flex-col rounded-lg border p-5 transition hover:-translate-y-0.5">
+              <a
+                href={getRelativeLocaleUrl(
+                  locale,
+                  `categories/${group.category}/`
+                )}
+                class="group rounded-sm"
+              >
+                <h2 class="group-hover:text-accent text-xl leading-snug font-semibold">
+                  {group.categoryName}
+                </h2>
+              </a>
+
+              <p class="text-muted-foreground mt-2 text-sm font-medium">
+                {formatCount(group.count)}
+              </p>
+
+              {group.tags.length > 0 && (
+                <ul class="mt-5 flex flex-wrap gap-2">
+                  {group.tags.slice(0, 8).map(tag => (
+                    <Tag
+                      tag={tag.tag}
+                      tagName={tag.tagName}
+                      count={tag.count}
+                      size="sm"
+                    />
+                  ))}
+                </ul>
+              )}
+            </article>
+          </li>
+        ))
+      }
+    </ul>
+  </Main>
+
+  <Footer />
+</Layout>

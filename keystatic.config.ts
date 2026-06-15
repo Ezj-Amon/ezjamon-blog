@@ -6,8 +6,13 @@ import type {
 } from "@keystatic/core";
 import { TextArea } from "@keystar/ui/text-field";
 import { createElement } from "react";
+import { slugifyStr } from "./src/utils/slugify";
 
 const tagSeparators = /[,\n\r;，；、]+|\s{2,}/u;
+
+function generateSlug(name: string) {
+  return slugifyStr(name);
+}
 
 function splitTags(value: string) {
   const tags = value
@@ -32,13 +37,17 @@ function parseStoredTags(value: FormFieldStoredValue) {
   throw new Error("标签必须是文本或文本数组");
 }
 
+function formatTagsForEditing(tags: readonly string[]) {
+  return tags.join(", ");
+}
+
 function tagListField({
   label,
   description,
 }: {
   label: string;
   description: string;
-}): BasicFormField<readonly string[]> {
+}): BasicFormField<string, string, readonly string[]> {
   return {
     kind: "form",
     label,
@@ -47,16 +56,19 @@ function tagListField({
         label,
         description,
         autoFocus: props.autoFocus,
-        value: props.value.join(", "),
-        onChange: (value: string) => props.onChange(splitTags(value)),
+        value: props.value,
+        onChange: props.onChange,
       });
     },
     defaultValue() {
-      return [];
+      return "";
     },
-    parse: parseStoredTags,
+    parse(value) {
+      return formatTagsForEditing(parseStoredTags(value));
+    },
     serialize(value) {
-      return { value: value.length > 0 ? value : undefined };
+      const tags = splitTags(value);
+      return { value: tags.length > 0 ? tags : undefined };
     },
     validate(value) {
       return value;
@@ -127,6 +139,7 @@ const postFields = (extension: "md" | "mdx") => ({
       label: "文件名 / URL 路径（通常自动生成）",
       description:
         "决定文章文件路径和公开访问地址。一般用标题自动生成即可；需要子文件夹时用斜杠分隔。",
+      generate: generateSlug,
     },
   }),
   slug: fields.text({
@@ -232,6 +245,7 @@ const resourceFields = {
     slug: {
       label: "文件名 / URL 路径（通常自动生成）",
       description: "一般用标题自动生成即可。需要分目录时再手动调整。",
+      generate: generateSlug,
     },
   }),
   description: fields.text({
@@ -302,7 +316,9 @@ const progressFields = {
       validation: { isRequired: true },
     },
     slug: {
-      label: "文件名 / URL 路径",
+      label: "文件名 / URL 路径（通常自动生成）",
+      description: "一般用标题自动生成即可。需要分目录时再手动调整。",
+      generate: generateSlug,
     },
   }),
   description: fields.text({
@@ -343,7 +359,9 @@ const pageFields = {
       validation: { isRequired: true },
     },
     slug: {
-      label: "文件名 / URL 路径",
+      label: "文件名 / URL 路径（通常自动生成）",
+      description: "一般用标题自动生成即可。需要分目录时再手动调整。",
+      generate: generateSlug,
     },
   }),
   description: fields.text({

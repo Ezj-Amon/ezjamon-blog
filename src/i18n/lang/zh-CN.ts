@@ -5,6 +5,7 @@ export default {
     home: "首页",
     posts: "文章",
     resources: "收藏",
+    categories: "分类",
     tags: "标签",
     about: "关于",
     archives: "归档",
@@ -51,6 +52,9 @@ export default {
 
     resourcesTitle: "收藏",
     resourcesDesc: "教程、视频、工具、链接和网页收藏。",
+
+    categoriesTitle: "分类",
+    categoriesDesc: "按主题整理的文章和收藏。",
 
     archivesTitle: "归档",
     archivesDesc: "按时间整理的所有文章。",

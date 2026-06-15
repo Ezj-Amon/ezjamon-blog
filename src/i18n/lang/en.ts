@@ -5,6 +5,7 @@ export default {
     home: "Home",
     posts: "Posts",
     resources: "Resources",
+    categories: "Categories",
     tags: "Tags",
     about: "About",
     archives: "Archives",
@@ -51,6 +52,9 @@ export default {
 
     resourcesTitle: "Resources",
     resourcesDesc: "Tutorials, videos, tools, links and bookmarks.",
+
+    categoriesTitle: "Categories",
+    categoriesDesc: "Posts and resources grouped by topic.",
 
     archivesTitle: "Archives",
     archivesDesc: "All the articles I've archived.",
