@@ -3,6 +3,7 @@ export interface UIStrings {
     home: string;
     posts: string;
     resources: string;
+    progress: string;
     categories: string;
     tags: string;
     about: string;
@@ -20,6 +21,7 @@ export interface UIStrings {
     goBack: string;
     editPage: string;
     tocTitle: string;
+    relatedPosts: string;
     previousPost: string;
     nextPost: string;
   };

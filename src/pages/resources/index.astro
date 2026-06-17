@@ -7,7 +7,9 @@ import Main from "@/components/Main.astro";
 import Footer from "@/components/Footer.astro";
 import Datetime from "@/components/Datetime.astro";
 import Tag from "@/components/Tag.astro";
-import CollectionNav from "@/components/CollectionNav.astro";
+import IconArchive from "@/assets/icons/IconArchive.svg";
+import IconSearch from "@/assets/icons/IconSearch.svg";
+import IconX from "@/assets/icons/IconX.svg";
 import {
   getContentTaxonomy,
   getEntryCategory,
@@ -38,30 +40,101 @@ const taxonomy = getContentTaxonomy(resources);
     pageDesc={t.pages.resourcesDesc}
     wide
   >
-    <CollectionNav
-      label="收藏分类"
-      collectionPath="resources"
-      {taxonomy}
-      sortLabel="最新收藏"
-      searchLabel="搜索收藏"
-    />
+    <section
+      class="border-border bg-muted/35 mb-5 rounded-lg border p-3"
+      aria-label="收藏筛选"
+    >
+      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
+        <div>
+          <div class="flex flex-wrap gap-2" data-resource-category-filters>
+            <button
+              type="button"
+              data-resource-category="all"
+              aria-pressed="true"
+              class="bg-accent text-accent-foreground rounded-md px-3 py-1.5 text-sm font-semibold"
+            >
+              全部
+              <span class="ms-1 text-xs opacity-80">{resources.length}</span>
+            </button>
+            {
+              taxonomy.map(group => (
+                <button
+                  type="button"
+                  data-resource-category={group.category}
+                  aria-pressed="false"
+                  class="border-border bg-background hover:border-accent hover:text-accent aria-pressed:bg-accent aria-pressed:text-accent-foreground rounded-md border px-3 py-1.5 text-sm font-semibold transition"
+                >
+                  {group.categoryName}
+                  <span class="ms-1 text-xs opacity-80">{group.count}</span>
+                </button>
+              ))
+            }
+          </div>
+          <p
+            data-resource-count
+            class="text-muted-foreground mt-3 text-xs font-semibold"
+            aria-live="polite"
+          >
+            当前显示 {resources.length} 条收藏
+          </p>
+        </div>
 
-    <ul class="grid gap-4 sm:grid-cols-3">
+        <label class="relative block">
+          <span class="sr-only">筛选收藏</span>
+          <IconSearch
+            class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            data-resource-search
+            class="border-border bg-background focus:border-accent w-full rounded-md border py-2 pr-9 pl-9 text-sm outline-none"
+            placeholder="筛选收藏..."
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            data-resource-clear
+            class="text-muted-foreground hover:text-accent absolute top-1/2 right-2 hidden size-7 -translate-y-1/2 place-items-center rounded-md"
+            aria-label="清除收藏筛选关键词"
+          >
+            <IconX class="size-4" aria-hidden="true" />
+          </button>
+        </label>
+      </div>
+    </section>
+
+    <ul class="grid gap-4 sm:grid-cols-3" data-resource-list>
       {
         resources.map(resource => {
           const { data } = resource;
           const category = getEntryCategory(resource);
           const secondaryTags = getEntrySecondaryTags(resource).slice(0, 3);
+          const searchText = [
+            data.title,
+            data.description,
+            data.note,
+            data.source,
+            category.categoryName,
+            resourceTypeLabels[data.type],
+            ...secondaryTags.map(tag => tag.tagName),
+          ]
+            .filter(Boolean)
+            .join(" ");
 
           return (
-            <li>
+            <li
+              data-resource-card
+              data-resource-category={category.category}
+              data-resource-search-text={searchText}
+            >
               <article class="border-border bg-background hover:border-accent/70 flex h-full min-h-56 flex-col rounded-lg border p-4 transition hover:shadow-lg hover:shadow-black/5">
                 <div class="mb-3 flex flex-wrap items-center gap-2 text-xs font-semibold">
                   <span
-                    class="bg-accent/10 text-accent rounded-md px-2 py-1"
+                    class="bg-accent/10 text-accent grid size-7 place-items-center rounded-md"
                     aria-hidden="true"
                   >
-                    ◴
+                    <IconArchive class="size-4" />
                   </span>
                   <a
                     href={getRelativeLocaleUrl(
@@ -137,7 +210,129 @@ const taxonomy = getContentTaxonomy(resources);
         <p class="text-muted-foreground">还没有收藏内容。</p>
       )
     }
+
+    <div
+      data-resource-empty
+      class="text-muted-foreground hidden items-center justify-between gap-3 rounded-lg border border-dashed p-5 text-sm"
+    >
+      <p>没有匹配的收藏。</p>
+      <button
+        type="button"
+        data-resource-reset
+        class="text-accent rounded-md text-sm font-semibold"
+      >
+        清除筛选
+      </button>
+    </div>
   </Main>
 
   <Footer />
 </Layout>
+
+<script>
+  function initResourceFilters() {
+    const cards = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-resource-card]")
+    );
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        "button[data-resource-category]"
+      )
+    );
+    const searchInput = document.querySelector<HTMLInputElement>(
+      "[data-resource-search]"
+    );
+    const clearButton = document.querySelector<HTMLButtonElement>(
+      "[data-resource-clear]"
+    );
+    const resetButton = document.querySelector<HTMLButtonElement>(
+      "[data-resource-reset]"
+    );
+    const countLabel = document.querySelector<HTMLElement>(
+      "[data-resource-count]"
+    );
+    const emptyState = document.querySelector<HTMLElement>(
+      "[data-resource-empty]"
+    );
+
+    if (!cards.length || !buttons.length) return;
+
+    let activeCategory = "all";
+
+    function updateButtonState() {
+      buttons.forEach(button => {
+        const isActive = button.dataset.resourceCategory === activeCategory;
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+
+    function applyFilters() {
+      const query = searchInput?.value.trim().toLowerCase() ?? "";
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const matchesCategory =
+          activeCategory === "all" ||
+          card.dataset.resourceCategory === activeCategory;
+        const text = card.dataset.resourceSearchText?.toLowerCase() ?? "";
+        const matchesQuery = !query || text.includes(query);
+        const isVisible = matchesCategory && matchesQuery;
+
+        card.classList.toggle("hidden", !isVisible);
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (countLabel) {
+        countLabel.textContent = `当前显示 ${visibleCount} 条收藏`;
+      }
+      clearButton?.classList.toggle("hidden", !query);
+      clearButton?.classList.toggle("grid", Boolean(query));
+      emptyState?.classList.toggle("hidden", visibleCount !== 0);
+      emptyState?.classList.toggle("flex", visibleCount === 0);
+    }
+
+    function resetFilters() {
+      activeCategory = "all";
+      if (searchInput) searchInput.value = "";
+      updateButtonState();
+      applyFilters();
+      searchInput?.focus();
+    }
+
+    buttons.forEach(button => {
+      if (button.dataset.resourceBound === "true") return;
+      button.dataset.resourceBound = "true";
+
+      button.addEventListener("click", () => {
+        activeCategory = button.dataset.resourceCategory ?? "all";
+        updateButtonState();
+        applyFilters();
+      });
+    });
+
+    if (searchInput && searchInput.dataset.resourceBound !== "true") {
+      searchInput.dataset.resourceBound = "true";
+      searchInput.addEventListener("input", applyFilters);
+    }
+
+    if (clearButton && clearButton.dataset.resourceBound !== "true") {
+      clearButton.dataset.resourceBound = "true";
+      clearButton.addEventListener("click", () => {
+        if (searchInput) searchInput.value = "";
+        applyFilters();
+        searchInput?.focus();
+      });
+    }
+
+    if (resetButton && resetButton.dataset.resourceBound !== "true") {
+      resetButton.dataset.resourceBound = "true";
+      resetButton.addEventListener("click", resetFilters);
+    }
+
+    updateButtonState();
+    applyFilters();
+  }
+
+  initResourceFilters();
+  document.addEventListener("astro:after-swap", initResourceFilters);
+</script>

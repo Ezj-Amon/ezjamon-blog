@@ -4,11 +4,12 @@ import { getRelativeLocaleUrl } from "astro:i18n";
 import IconRss from "@/assets/icons/IconRss.svg";
 import IconArrowRight from "@/assets/icons/IconArrowRight.svg";
 import IconChevronLeft from "@/assets/icons/IconChevronLeft.svg";
+import IconArchive from "@/assets/icons/IconArchive.svg";
+import IconEdit from "@/assets/icons/IconEdit.svg";
 import Layout from "@/layouts/Layout.astro";
 import Header from "@/components/Header.astro";
 import Footer from "@/components/Footer.astro";
 import Card from "@/components/Card.astro";
-import LinkButton from "@/components/LinkButton.astro";
 import Datetime from "@/components/Datetime.astro";
 import Tag from "@/components/Tag.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
@@ -47,15 +48,12 @@ const curatedPosts =
   featuredPosts.length >= 2
     ? featuredPosts.slice(0, 2)
     : sortedPosts.slice(0, 2);
+const featuredPost = featuredPosts[0] ?? sortedPosts[0];
 const latestPosts = sortedPosts.slice(0, 4);
-const tags = getUniqueTags([...sortedPosts, ...resources]).slice(0, 16);
+const tags = getUniqueTags([...sortedPosts, ...resources]).slice(0, 12);
 const taxonomy = getContentTaxonomy([...sortedPosts, ...resources]);
 const homePath = getRelativeLocaleUrl(locale, "");
-const homeStats = [
-  { label: "文章", value: sortedPosts.length },
-  { label: "收藏", value: resources.length },
-  { label: "主题", value: taxonomy.length },
-];
+const homeInfo = `目前整理了 ${sortedPosts.length} 篇文章、${resources.length} 条收藏，按 ${taxonomy.length} 个主题慢慢归档。`;
 ---
 
 <Layout>
@@ -64,66 +62,69 @@ const homeStats = [
     id="main-content"
     data-layout="index"
     data-home-path={homePath}
-    class="app-layout border-border bg-background border-x border-b px-5 pt-7 pb-8 shadow-[0_24px_55px_rgba(15,23,42,0.07)] sm:px-8 sm:pt-8 sm:pb-10"
+    class="app-layout border-border bg-background border-x border-b px-5 pt-7 pb-8 shadow-[0_24px_55px_rgba(15,23,42,0.06)] sm:px-8 sm:pt-8 sm:pb-10"
   >
     <section
       id="hero"
-      class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:items-center"
+      class="grid gap-8 lg:grid-cols-[minmax(0,1fr)_18rem] lg:items-start"
     >
       <div>
-        <p class="text-accent text-sm font-semibold">
-          你好，欢迎来到我的数字花园
-        </p>
+        <p class="text-accent text-sm font-semibold">个人博客 / Amon</p>
         <h1
           class="text-foreground mt-3 max-w-3xl text-4xl leading-[1.05] font-black sm:text-5xl lg:text-6xl"
         >
-          Amon's Notes<br />
-          一些正在生长的记录。
+          Amon's Notes
         </h1>
-        <p class="text-muted-foreground mt-4 max-w-2xl text-base leading-7">
-          这里存放文章、工具、链接和阶段性的思考。它们不一定完整，但会随着使用和复盘慢慢变得清晰。
+        <p
+          class="text-foreground mt-4 max-w-2xl text-lg leading-8 font-semibold"
+        >
+          记录 AI、建站、内容系统和产品思考里的折腾、复盘与踩坑
         </p>
 
-        <div class="mt-5 flex flex-wrap items-center gap-3">
-          <LinkButton
+        <p class="text-muted-foreground mt-5 max-w-2xl text-sm leading-7">
+          {homeInfo}
+          <span class="text-border mx-2">/</span>
+          <a
             href={getRelativeLocaleUrl(locale, "posts")}
-            class="bg-accent text-accent-foreground hover:text-accent-foreground rounded-md px-5 py-3 text-sm font-semibold shadow-sm"
+            class="text-accent font-semibold hover:underline"
           >
-            浏览文章
-            <IconArrowRight class="inline-block size-4 rtl:-rotate-180" />
-          </LinkButton>
-          <LinkButton
+            从最新文章继续看
+          </a>
+        </p>
+
+        <div
+          class="text-muted-foreground mt-5 flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-medium"
+        >
+          <a
+            href={getRelativeLocaleUrl(locale, "posts")}
+            class="hover:text-accent inline-flex items-center gap-1.5"
+          >
+            文章
+            <IconArrowRight class="size-3.5 rtl:-rotate-180" />
+          </a>
+          <a
             href={getRelativeLocaleUrl(locale, "resources")}
-            class="border-border hover:border-accent hover:text-accent rounded-md border px-5 py-3 text-sm font-semibold"
+            class="hover:text-accent"
           >
-            查看收藏
-          </LinkButton>
-          <LinkButton
+            收藏
+          </a>
+          <a
+            href={getRelativeLocaleUrl(locale, "tags")}
+            class="hover:text-accent"
+          >
+            标签
+          </a>
+          <a
             target="_blank"
             href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`}
-            class="border-border hover:border-accent hover:text-accent rounded-md border p-3"
+            class="hover:text-accent inline-flex items-center gap-1.5"
             aria-label="RSS 订阅"
             title="RSS 订阅"
           >
-            <IconRss class="size-5 stroke-3" />
-            <span class="sr-only">RSS 订阅</span>
-          </LinkButton>
+            <IconRss class="size-4 stroke-3" />
+            RSS
+          </a>
         </div>
-
-        <dl class="mt-6 grid max-w-xl grid-cols-3 gap-2">
-          {
-            homeStats.map(stat => (
-              <div class="border-border bg-muted/55 rounded-lg border px-3 py-2">
-                <dt class="text-muted-foreground text-xs font-semibold">
-                  {stat.label}
-                </dt>
-                <dd class="text-foreground mt-1 text-2xl font-black">
-                  {stat.value}
-                </dd>
-              </div>
-            ))
-          }
-        </dl>
       </div>
 
       <aside
@@ -132,10 +133,10 @@ const homeStats = [
         <div class="p-5">
           <h2 class="flex items-center gap-2 text-lg font-bold">
             <span
-              class="bg-accent/10 text-accent rounded-md px-2 py-1 text-sm"
+              class="bg-accent/10 text-accent grid size-7 place-items-center rounded-md"
               aria-hidden="true"
             >
-              ↗
+              <IconEdit class="size-4" />
             </span>
             最近在折腾
           </h2>
@@ -225,7 +226,7 @@ const homeStats = [
           <button
             type="button"
             data-resource-scroll="prev"
-            class="border-border hover:border-accent hover:text-accent grid size-8 place-items-center rounded-md border"
+            class="border-border hover:border-accent hover:text-accent disabled:hover:text-muted-foreground disabled:hover:border-border grid size-8 place-items-center rounded-md border disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="上一组收藏"
           >
             <IconChevronLeft class="size-4" />
@@ -233,7 +234,7 @@ const homeStats = [
           <button
             type="button"
             data-resource-scroll="next"
-            class="border-border hover:border-accent hover:text-accent grid size-8 place-items-center rounded-md border"
+            class="border-border hover:border-accent hover:text-accent disabled:hover:text-muted-foreground disabled:hover:border-border grid size-8 place-items-center rounded-md border disabled:cursor-not-allowed disabled:opacity-40"
             aria-label="下一组收藏"
           >
             <IconChevronLeft class="size-4 rotate-180" />
@@ -254,10 +255,10 @@ const homeStats = [
                 <article class="border-border bg-background hover:border-accent/70 flex h-full flex-col rounded-lg border p-3 transition hover:shadow-lg hover:shadow-black/5">
                   <div class="mb-3 flex items-center gap-2 text-xs font-semibold">
                     <span
-                      class="bg-accent/10 text-accent rounded-md px-2 py-1"
+                      class="bg-accent/10 text-accent grid size-7 place-items-center rounded-md"
                       aria-hidden="true"
                     >
-                      ◴
+                      <IconArchive class="size-4" />
                     </span>
                     <a
                       href={getRelativeLocaleUrl(
@@ -313,36 +314,70 @@ const homeStats = [
       </ul>
     </section>
 
-    <section class="mt-6">
-      <div class="mb-4 flex items-center justify-between gap-4">
-        <h2 class="text-2xl font-bold">常用标签</h2>
-        <a
-          href={getRelativeLocaleUrl(locale, "tags")}
-          class="text-accent inline-flex items-center gap-2 text-sm font-semibold"
-        >
-          查看更多
-          <IconArrowRight class="size-4 rtl:-rotate-180" />
-        </a>
+    <section
+      class="border-border mt-10 grid gap-8 border-t pt-7 lg:grid-cols-[minmax(0,1fr)_16rem]"
+    >
+      <div>
+        <div class="mb-4 flex items-center justify-between gap-4">
+          <h2 class="text-lg font-bold">常用标签</h2>
+          <a
+            href={getRelativeLocaleUrl(locale, "tags")}
+            class="text-accent inline-flex items-center gap-1.5 text-sm font-semibold"
+          >
+            标签页
+            <IconArrowRight class="size-4 rtl:-rotate-180" />
+          </a>
+        </div>
+        <ul class="flex flex-wrap gap-2">
+          {
+            tags.map(({ tag, tagName, count }) => (
+              <Tag {tag} {tagName} {count} size="sm" />
+            ))
+          }
+        </ul>
       </div>
-      <ul class="flex flex-wrap gap-2">
-        {
-          tags.map(({ tag, tagName, count }) => (
-            <Tag {tag} {tagName} {count} size="sm" />
-          ))
-        }
-        {
-          taxonomy.length > 0 && (
-            <li>
+
+      <div>
+        <h2 class="mb-4 text-lg font-bold">继续看</h2>
+        <nav
+          class="text-muted-foreground flex flex-col gap-3 text-sm font-medium"
+        >
+          {
+            featuredPost && (
               <a
-                href={getRelativeLocaleUrl(locale, "tags")}
-                class="bg-muted hover:text-accent inline-flex rounded-md px-4 py-1.5 text-sm font-semibold"
+                href={getPostUrl(
+                  featuredPost.id,
+                  featuredPost.filePath,
+                  locale
+                )}
+                class="hover:text-accent"
               >
-                更多
+                主推文章
               </a>
-            </li>
-          )
-        }
-      </ul>
+            )
+          }
+          <a
+            href={getRelativeLocaleUrl(locale, "progress")}
+            class="hover:text-accent"
+          >
+            最近进展
+          </a>
+          <a
+            href={getRelativeLocaleUrl(locale, "archives")}
+            class="hover:text-accent"
+          >
+            文章归档
+          </a>
+          <a
+            target="_blank"
+            href={`${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`}
+            class="hover:text-accent inline-flex items-center gap-1.5"
+          >
+            <IconRss class="size-4 stroke-3" />
+            RSS 订阅
+          </a>
+        </nav>
+      </div>
     </section>
   </main>
   <Footer />
@@ -362,6 +397,17 @@ const homeStats = [
       "[data-resource-scroll]"
     );
 
+    function updateScrollButtons() {
+      if (!strip) return;
+      const maxScrollLeft = Math.max(0, strip.scrollWidth - strip.clientWidth);
+      buttons.forEach(button => {
+        const isPrev = button.dataset.resourceScroll === "prev";
+        button.disabled = isPrev
+          ? strip.scrollLeft <= 1
+          : strip.scrollLeft >= maxScrollLeft - 1;
+      });
+    }
+
     buttons.forEach(button => {
       button.addEventListener("click", () => {
         if (!strip) return;
@@ -372,5 +418,12 @@ const homeStats = [
         });
       });
     });
+
+    if (strip && strip.dataset.resourceStripBound !== "true") {
+      strip.dataset.resourceStripBound = "true";
+      strip.addEventListener("scroll", updateScrollButtons, { passive: true });
+      window.addEventListener("resize", updateScrollButtons);
+      requestAnimationFrame(updateScrollButtons);
+    }
   });
 </script>

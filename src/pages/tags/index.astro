@@ -6,6 +6,9 @@ import Header from "@/components/Header.astro";
 import Main from "@/components/Main.astro";
 import Footer from "@/components/Footer.astro";
 import Tag from "@/components/Tag.astro";
+import IconHash from "@/assets/icons/IconHash.svg";
+import IconSearch from "@/assets/icons/IconSearch.svg";
+import IconX from "@/assets/icons/IconX.svg";
 import { getContentTaxonomy } from "@/utils/getContentTaxonomy";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { postFilter } from "@/utils/postFilter";
@@ -20,30 +23,94 @@ const taxonomy = getContentTaxonomy(entries);
 
 const locale = Astro.currentLocale ?? config.site.lang;
 const t = useTranslations(locale);
-const markers = ["⌂", "⌘", "◎", "☷"];
+const totalTagCount = taxonomy.reduce(
+  (total, group) => total + group.tags.length,
+  0
+);
 ---
 
 <Layout title={`${t.pages.tagsTitle} | ${config.site.title}`}>
   <Header />
 
   <Main pageTitle={t.pages.tagsTitle} pageDesc={t.pages.tagsDesc} wide>
-    <div class="mb-5 flex justify-end">
-      <span
-        class="text-muted-foreground px-1 py-1.5 text-sm font-medium"
-        aria-label="当前展示：按主题分组"
-      >
-        按主题分组
-      </span>
-    </div>
+    {
+      taxonomy.length > 0 && (
+        <section
+          class="border-border bg-muted/35 mb-5 rounded-lg border p-3"
+          aria-label="标签筛选"
+        >
+          <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
+            <div>
+              <div class="flex flex-wrap gap-2" data-tag-group-filters>
+                <button
+                  type="button"
+                  data-tag-group="all"
+                  aria-pressed="true"
+                  class="bg-accent text-accent-foreground rounded-md px-3 py-1.5 text-sm font-semibold"
+                >
+                  全部
+                  <span class="ms-1 text-xs opacity-80">{totalTagCount}</span>
+                </button>
+                {taxonomy.map(group => (
+                  <button
+                    type="button"
+                    data-tag-group={group.category}
+                    aria-pressed="false"
+                    class="border-border bg-background hover:border-accent hover:text-accent aria-pressed:bg-accent aria-pressed:text-accent-foreground rounded-md border px-3 py-1.5 text-sm font-semibold transition"
+                  >
+                    {group.categoryName}
+                    <span class="ms-1 text-xs opacity-80">
+                      {group.tags.length}
+                    </span>
+                  </button>
+                ))}
+              </div>
+              <p
+                data-tag-count
+                class="text-muted-foreground mt-3 text-xs font-semibold"
+                aria-live="polite"
+              >
+                当前显示 {totalTagCount} 个标签
+              </p>
+            </div>
 
-    <section class="space-y-6">
+            <label class="relative block">
+              <span class="sr-only">筛选标签</span>
+              <IconSearch
+                class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+                aria-hidden="true"
+              />
+              <input
+                type="search"
+                data-tag-search
+                class="border-border bg-background focus:border-accent w-full rounded-md border py-2 pr-9 pl-9 text-sm outline-none"
+                placeholder="筛选标签..."
+                autocomplete="off"
+              />
+              <button
+                type="button"
+                data-tag-clear
+                class="text-muted-foreground hover:text-accent absolute top-1/2 right-2 hidden size-7 -translate-y-1/2 place-items-center rounded-md"
+                aria-label="清除标签筛选关键词"
+              >
+                <IconX class="size-4" aria-hidden="true" />
+              </button>
+            </label>
+          </div>
+        </section>
+      )
+    }
+
+    <section class="space-y-6" data-tag-map>
       {
-        taxonomy.map((group, index) => (
-          <article>
+        taxonomy.map(group => (
+          <article
+            data-tag-group-section
+            data-tag-group={group.category}
+            data-tag-group-search-text={`${group.categoryName} ${group.category}`}
+          >
             <h2 class="mb-3 flex items-center gap-2 text-sm font-bold">
-              <span class="text-accent" aria-hidden="true">
-                {markers[index % markers.length]}
-              </span>
+              <IconHash class="text-accent size-4" aria-hidden="true" />
               <a
                 href={getRelativeLocaleUrl(
                   locale,
@@ -56,12 +123,21 @@ const markers = ["⌂", "⌘", "◎", "☷"];
             </h2>
             <ul class="flex flex-wrap gap-2">
               {group.tags.map(tag => (
-                <Tag
-                  tag={tag.tag}
-                  tagName={tag.tagName}
-                  count={tag.count}
-                  size="sm"
-                />
+                <li
+                  data-tag-pill
+                  data-tag-search-text={`${tag.tagName} ${tag.tag} ${group.categoryName}`}
+                >
+                  <a
+                    href={getRelativeLocaleUrl(locale, `tags/${tag.tag}/`)}
+                    transition:name={tag.tag}
+                    class="bg-muted hover:text-accent focus-visible:text-accent flex items-center gap-1 rounded-md px-3 py-1.5 text-sm font-semibold transition"
+                  >
+                    <span>{tag.tagName}</span>
+                    <span class="text-muted-foreground ml-1 text-xs tabular-nums">
+                      {tag.count}
+                    </span>
+                  </a>
+                </li>
               ))}
             </ul>
           </article>
@@ -69,14 +145,137 @@ const markers = ["⌂", "⌘", "◎", "☷"];
       }
     </section>
 
-    {taxonomy.length === 0 && (
-      <ul class="flex flex-wrap gap-2">
-        {tags.map(({ tag, tagName, count }) => (
-          <Tag {tag} {tagName} {count} size="sm" />
-        ))}
-      </ul>
-    )}
+    <div
+      data-tag-empty
+      class="text-muted-foreground mt-5 hidden items-center justify-between gap-3 rounded-lg border border-dashed p-5 text-sm"
+    >
+      <p>没有匹配的标签。</p>
+      <button
+        type="button"
+        data-tag-reset
+        class="text-accent rounded-md text-sm font-semibold"
+      >
+        清除筛选
+      </button>
+    </div>
+
+    {
+      taxonomy.length === 0 && (
+        <ul class="flex flex-wrap gap-2">
+          {tags.map(({ tag, tagName, count }) => (
+            <Tag {tag} {tagName} {count} size="sm" />
+          ))}
+        </ul>
+      )
+    }
   </Main>
 
   <Footer />
 </Layout>
+
+<script>
+  function initTagFilters() {
+    const sections = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-tag-group-section]")
+    );
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>("button[data-tag-group]")
+    );
+    const searchInput =
+      document.querySelector<HTMLInputElement>("[data-tag-search]");
+    const clearButton =
+      document.querySelector<HTMLButtonElement>("[data-tag-clear]");
+    const resetButton =
+      document.querySelector<HTMLButtonElement>("[data-tag-reset]");
+    const countLabel = document.querySelector<HTMLElement>("[data-tag-count]");
+    const emptyState = document.querySelector<HTMLElement>("[data-tag-empty]");
+
+    if (!sections.length || !buttons.length) return;
+
+    let activeGroup = "all";
+
+    function updateButtonState() {
+      buttons.forEach(button => {
+        const isActive = button.dataset.tagGroup === activeGroup;
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+
+    function applyFilters() {
+      const query = searchInput?.value.trim().toLowerCase() ?? "";
+      let visibleCount = 0;
+
+      sections.forEach(section => {
+        const matchesGroup =
+          activeGroup === "all" || section.dataset.tagGroup === activeGroup;
+        let visibleInSection = 0;
+
+        section
+          .querySelectorAll<HTMLElement>("[data-tag-pill]")
+          .forEach(tag => {
+            const text = tag.dataset.tagSearchText?.toLowerCase() ?? "";
+            const matchesQuery = !query || text.includes(query);
+            const isVisible = matchesGroup && matchesQuery;
+
+            tag.classList.toggle("hidden", !isVisible);
+            if (isVisible) visibleInSection += 1;
+          });
+
+        section.classList.toggle("hidden", visibleInSection === 0);
+        visibleCount += visibleInSection;
+      });
+
+      if (countLabel) {
+        countLabel.textContent = `当前显示 ${visibleCount} 个标签`;
+      }
+      clearButton?.classList.toggle("hidden", !query);
+      clearButton?.classList.toggle("grid", Boolean(query));
+      emptyState?.classList.toggle("hidden", visibleCount !== 0);
+      emptyState?.classList.toggle("flex", visibleCount === 0);
+    }
+
+    function resetFilters() {
+      activeGroup = "all";
+      if (searchInput) searchInput.value = "";
+      updateButtonState();
+      applyFilters();
+      searchInput?.focus();
+    }
+
+    buttons.forEach(button => {
+      if (button.dataset.tagBound === "true") return;
+      button.dataset.tagBound = "true";
+
+      button.addEventListener("click", () => {
+        activeGroup = button.dataset.tagGroup ?? "all";
+        updateButtonState();
+        applyFilters();
+      });
+    });
+
+    if (searchInput && searchInput.dataset.tagBound !== "true") {
+      searchInput.dataset.tagBound = "true";
+      searchInput.addEventListener("input", applyFilters);
+    }
+
+    if (clearButton && clearButton.dataset.tagBound !== "true") {
+      clearButton.dataset.tagBound = "true";
+      clearButton.addEventListener("click", () => {
+        if (searchInput) searchInput.value = "";
+        applyFilters();
+        searchInput?.focus();
+      });
+    }
+
+    if (resetButton && resetButton.dataset.tagBound !== "true") {
+      resetButton.dataset.tagBound = "true";
+      resetButton.addEventListener("click", resetFilters);
+    }
+
+    updateButtonState();
+    applyFilters();
+  }
+
+  initTagFilters();
+  document.addEventListener("astro:after-swap", initTagFilters);
+</script>

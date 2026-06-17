@@ -6,6 +6,8 @@ import Header from "@/components/Header.astro";
 import Main from "@/components/Main.astro";
 import Footer from "@/components/Footer.astro";
 import Datetime from "@/components/Datetime.astro";
+import IconSearch from "@/assets/icons/IconSearch.svg";
+import IconX from "@/assets/icons/IconX.svg";
 import config from "@/config";
 
 const locale = Astro.currentLocale ?? config.site.lang;
@@ -17,6 +19,8 @@ const statusLabels = {
   done: "已完成",
 };
 
+const statusOrder = ["active", "planned", "paused", "done"] as const;
+
 const progressItems = (
   await getCollection("progress", ({ data }) => !data.draft)
 ).sort(
@@ -24,51 +28,260 @@ const progressItems = (
     new Date(b.data.pubDatetime).getTime() -
     new Date(a.data.pubDatetime).getTime()
 );
+
+const statusStats = statusOrder
+  .map(status => ({
+    status,
+    label: statusLabels[status],
+    count: progressItems.filter(item => item.data.status === status).length,
+  }))
+  .filter(({ count }) => count > 0);
 ---
 
 <Layout title={`进展 | ${config.site.title}`}>
   <Header />
 
-  <Main
-    pageTitle="进展"
-    pageDesc="记录最近正在推进、计划和完成的事情。"
-    wide
-  >
-    <ul class="grid gap-3">
+  <Main pageTitle="进展" pageDesc="记录最近正在推进、计划和完成的事情。" wide>
+    <section
+      class="border-border bg-muted/35 mb-5 rounded-lg border p-3"
+      aria-label="进展筛选"
+    >
+      <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_16rem] lg:items-start">
+        <div>
+          <div class="flex flex-wrap gap-2" data-progress-status-filters>
+            <button
+              type="button"
+              data-progress-status="all"
+              aria-pressed="true"
+              class="bg-accent text-accent-foreground rounded-md px-3 py-1.5 text-sm font-semibold"
+            >
+              全部
+              <span class="ms-1 text-xs opacity-80">
+                {progressItems.length}
+              </span>
+            </button>
+            {
+              statusStats.map(({ status, label, count }) => (
+                <button
+                  type="button"
+                  data-progress-status={status}
+                  aria-pressed="false"
+                  class="border-border bg-background hover:border-accent hover:text-accent aria-pressed:bg-accent aria-pressed:text-accent-foreground rounded-md border px-3 py-1.5 text-sm font-semibold transition"
+                >
+                  {label}
+                  <span class="ms-1 text-xs opacity-80">{count}</span>
+                </button>
+              ))
+            }
+          </div>
+          <p
+            data-progress-count
+            class="text-muted-foreground mt-3 text-xs font-semibold"
+            aria-live="polite"
+          >
+            当前显示 {progressItems.length} 条进展
+          </p>
+        </div>
+
+        <label class="relative block">
+          <span class="sr-only">筛选进展</span>
+          <IconSearch
+            class="text-muted-foreground pointer-events-none absolute top-1/2 left-3 size-4 -translate-y-1/2"
+            aria-hidden="true"
+          />
+          <input
+            type="search"
+            data-progress-search
+            class="border-border bg-background focus:border-accent w-full rounded-md border py-2 pr-9 pl-9 text-sm outline-none"
+            placeholder="筛选进展..."
+            autocomplete="off"
+          />
+          <button
+            type="button"
+            data-progress-clear
+            class="text-muted-foreground hover:text-accent absolute top-1/2 right-2 hidden size-7 -translate-y-1/2 place-items-center rounded-md"
+            aria-label="清除进展筛选关键词"
+          >
+            <IconX class="size-4" aria-hidden="true" />
+          </button>
+        </label>
+      </div>
+    </section>
+
+    <ul class="grid gap-3" data-progress-list>
       {
-        progressItems.map(item => (
-          <li>
-            <article class="border-border bg-background rounded-lg border p-4 transition hover:border-accent/70 hover:shadow-lg hover:shadow-black/5">
-              <div class="mb-3 flex flex-wrap items-center gap-2">
-                <span class="bg-accent text-accent-foreground rounded-md px-2 py-1 text-xs font-semibold">
-                  {statusLabels[item.data.status]}
-                </span>
-                <Datetime
-                  class="text-xs [&>svg]:hidden [&_time]:text-xs"
-                  pubDatetime={item.data.pubDatetime}
-                />
-              </div>
-              <a
-                href={getRelativeLocaleUrl(locale, `progress/${item.id}/`)}
-                class="hover:text-accent text-lg font-bold"
-              >
-                {item.data.title}
-              </a>
-              {item.data.description && (
-                <p class="text-muted-foreground mt-2 text-sm leading-6">
-                  {item.data.description}
-                </p>
-              )}
-            </article>
-          </li>
-        ))
+        progressItems.map(item => {
+          const searchText = [
+            item.data.title,
+            item.data.description,
+            statusLabels[item.data.status],
+            item.body,
+          ]
+            .filter(Boolean)
+            .join(" ");
+
+          return (
+            <li
+              data-progress-card
+              data-progress-status={item.data.status}
+              data-progress-search-text={searchText}
+            >
+              <article class="border-border bg-background hover:border-accent/70 rounded-lg border p-4 transition hover:shadow-lg hover:shadow-black/5">
+                <div class="mb-3 flex flex-wrap items-center gap-2">
+                  <span class="bg-accent text-accent-foreground rounded-md px-2 py-1 text-xs font-semibold">
+                    {statusLabels[item.data.status]}
+                  </span>
+                  <Datetime
+                    class="text-xs [&_time]:text-xs [&>svg]:hidden"
+                    pubDatetime={item.data.pubDatetime}
+                  />
+                </div>
+                <a
+                  href={getRelativeLocaleUrl(locale, `progress/${item.id}/`)}
+                  class="hover:text-accent text-lg font-bold"
+                >
+                  {item.data.title}
+                </a>
+                {item.data.description && (
+                  <p class="text-muted-foreground mt-2 text-sm leading-6">
+                    {item.data.description}
+                  </p>
+                )}
+              </article>
+            </li>
+          );
+        })
       }
     </ul>
 
-    {progressItems.length === 0 && (
-      <p class="text-muted-foreground">还没有进展记录。</p>
-    )}
+    {
+      progressItems.length === 0 && (
+        <p class="text-muted-foreground">还没有进展记录。</p>
+      )
+    }
+
+    <div
+      data-progress-empty
+      class="text-muted-foreground hidden items-center justify-between gap-3 rounded-lg border border-dashed p-5 text-sm"
+    >
+      <p>没有匹配的进展。</p>
+      <button
+        type="button"
+        data-progress-reset
+        class="text-accent rounded-md text-sm font-semibold"
+      >
+        清除筛选
+      </button>
+    </div>
   </Main>
 
   <Footer />
 </Layout>
+
+<script>
+  function initProgressFilters() {
+    const cards = Array.from(
+      document.querySelectorAll<HTMLElement>("[data-progress-card]")
+    );
+    const buttons = Array.from(
+      document.querySelectorAll<HTMLButtonElement>(
+        "button[data-progress-status]"
+      )
+    );
+    const searchInput = document.querySelector<HTMLInputElement>(
+      "[data-progress-search]"
+    );
+    const clearButton = document.querySelector<HTMLButtonElement>(
+      "[data-progress-clear]"
+    );
+    const resetButton = document.querySelector<HTMLButtonElement>(
+      "[data-progress-reset]"
+    );
+    const countLabel = document.querySelector<HTMLElement>(
+      "[data-progress-count]"
+    );
+    const emptyState = document.querySelector<HTMLElement>(
+      "[data-progress-empty]"
+    );
+
+    if (!cards.length || !buttons.length) return;
+
+    let activeStatus = "all";
+
+    function updateButtonState() {
+      buttons.forEach(button => {
+        const isActive = button.dataset.progressStatus === activeStatus;
+        button.setAttribute("aria-pressed", String(isActive));
+      });
+    }
+
+    function applyFilters() {
+      const query = searchInput?.value.trim().toLowerCase() ?? "";
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const matchesStatus =
+          activeStatus === "all" ||
+          card.dataset.progressStatus === activeStatus;
+        const text = card.dataset.progressSearchText?.toLowerCase() ?? "";
+        const matchesQuery = !query || text.includes(query);
+        const isVisible = matchesStatus && matchesQuery;
+
+        card.classList.toggle("hidden", !isVisible);
+        if (isVisible) visibleCount += 1;
+      });
+
+      if (countLabel) {
+        countLabel.textContent = `当前显示 ${visibleCount} 条进展`;
+      }
+      clearButton?.classList.toggle("hidden", !query);
+      clearButton?.classList.toggle("grid", Boolean(query));
+      emptyState?.classList.toggle("hidden", visibleCount !== 0);
+      emptyState?.classList.toggle("flex", visibleCount === 0);
+    }
+
+    function resetFilters() {
+      activeStatus = "all";
+      if (searchInput) searchInput.value = "";
+      updateButtonState();
+      applyFilters();
+      searchInput?.focus();
+    }
+
+    buttons.forEach(button => {
+      if (button.dataset.progressBound === "true") return;
+      button.dataset.progressBound = "true";
+
+      button.addEventListener("click", () => {
+        activeStatus = button.dataset.progressStatus ?? "all";
+        updateButtonState();
+        applyFilters();
+      });
+    });
+
+    if (searchInput && searchInput.dataset.progressBound !== "true") {
+      searchInput.dataset.progressBound = "true";
+      searchInput.addEventListener("input", applyFilters);
+    }
+
+    if (clearButton && clearButton.dataset.progressBound !== "true") {
+      clearButton.dataset.progressBound = "true";
+      clearButton.addEventListener("click", () => {
+        if (searchInput) searchInput.value = "";
+        applyFilters();
+        searchInput?.focus();
+      });
+    }
+
+    if (resetButton && resetButton.dataset.progressBound !== "true") {
+      resetButton.dataset.progressBound = "true";
+      resetButton.addEventListener("click", resetFilters);
+    }
+
+    updateButtonState();
+    applyFilters();
+  }
+
+  initProgressFilters();
+  document.addEventListener("astro:after-swap", initProgressFilters);
+</script>
