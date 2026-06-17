@@ -44,14 +44,14 @@ const rssHref = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`;
 </a>
 
 <header
-  class="app-layout mt-4 flex flex-col items-center justify-between sm:mt-6 sm:flex-row"
+  class="app-layout sticky top-3 z-40 mt-4 flex flex-col items-center justify-between sm:top-4 sm:mt-6 sm:flex-row"
 >
   <div
     class="border-border bg-background relative flex w-full items-baseline justify-between rounded-t-2xl border border-b px-5 py-4 shadow-[0_18px_45px_rgba(15,23,42,0.08)] sm:items-center sm:px-8 sm:py-5"
   >
     <a
       href={getRelativeLocaleUrl(locale, "")}
-      class="absolute py-1 text-xl leading-8 font-bold tracking-[-0.01em] whitespace-nowrap sm:static sm:my-auto sm:text-2xl sm:leading-none"
+      class="absolute py-1 text-xl leading-8 font-bold whitespace-nowrap sm:static sm:my-auto sm:text-2xl sm:leading-none"
     >
       {site.title}
     </a>
@@ -73,7 +73,7 @@ const rssHref = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`;
       </button>
       <ul
         id="menu-items"
-        class="[&>li>a]:hover:text-accent mt-4 hidden w-44 grid-cols-2 place-content-center gap-2 text-sm sm:mt-0 sm:flex sm:w-auto sm:items-center sm:gap-x-5 sm:gap-y-0 sm:[&>li]:h-8 [&>li>a]:block [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:font-semibold sm:[&>li>a]:px-2 sm:[&>li>a]:py-1"
+        class="border-border bg-muted/70 [&>li>a]:hover:text-accent mt-4 hidden w-full grid-cols-2 place-content-center gap-2 rounded-xl border p-2 text-sm backdrop-blur sm:mt-0 sm:flex sm:w-auto sm:items-center sm:gap-x-5 sm:gap-y-0 sm:border-0 sm:bg-transparent sm:p-0 sm:backdrop-blur-none sm:[&>li]:h-8 [&>li>a]:block [&>li>a]:rounded-md [&>li>a]:px-4 [&>li>a]:py-3 [&>li>a]:text-center [&>li>a]:font-semibold sm:[&>li>a]:px-2 sm:[&>li>a]:py-1"
       >
         <li class="col-span-2">
           <a
@@ -115,7 +115,9 @@ const rssHref = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`;
             title="RSS"
             aria-label="RSS"
           >
-            <IconRss class="absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 stroke-3" />
+            <IconRss
+              class="absolute top-1/2 left-1/2 size-5 -translate-x-1/2 -translate-y-1/2 stroke-3"
+            />
             <span class="sr-only">RSS</span>
           </LinkButton>
         </li>
@@ -156,31 +158,42 @@ const rssHref = `${import.meta.env.BASE_URL.replace(/\/?$/, "/")}rss.xml`;
 </header>
 
 <script>
-  function toggleNav() {
+  function initNav() {
     const menuBtn = document.querySelector<HTMLButtonElement>("#menu-btn");
-    const menuItems = document.querySelector("#menu-items");
+    const menuItems = document.querySelector<HTMLElement>("#menu-items");
     const menuIcon = document.querySelector("#menu-icon");
     const closeIcon = document.querySelector("#close-icon");
 
     if (!menuBtn || !menuItems || !menuIcon || !closeIcon) return;
+    if (menuBtn.dataset.navBound === "true") return;
+    menuBtn.dataset.navBound = "true";
 
     const openLabel = menuBtn.dataset.labelOpen ?? "Open menu";
     const closeLabel = menuBtn.dataset.labelClose ?? "Close menu";
 
+    function setOpen(open: boolean) {
+      menuBtn?.setAttribute("aria-expanded", open ? "true" : "false");
+      menuBtn?.setAttribute("aria-label", open ? closeLabel : openLabel);
+      menuItems?.classList.toggle("hidden", !open);
+      menuItems?.classList.toggle("grid", open);
+      menuIcon?.classList.toggle("hidden", open);
+      closeIcon?.classList.toggle("hidden", !open);
+    }
+
     menuBtn.addEventListener("click", () => {
-      const openMenu = menuBtn.getAttribute("aria-expanded") === "true";
+      setOpen(menuBtn.getAttribute("aria-expanded") !== "true");
+    });
 
-      menuBtn.setAttribute("aria-expanded", openMenu ? "false" : "true");
-      menuBtn.setAttribute("aria-label", openMenu ? openLabel : closeLabel);
+    menuItems.querySelectorAll("a").forEach(link => {
+      link.addEventListener("click", () => setOpen(false));
+    });
 
-      menuItems.classList.toggle("hidden");
-      menuItems.classList.toggle("grid");
-      menuIcon.classList.toggle("hidden");
-      closeIcon.classList.toggle("hidden");
+    document.addEventListener("keydown", event => {
+      if (event.key === "Escape") setOpen(false);
     });
   }
 
-  toggleNav();
+  initNav();
 
-  document.addEventListener("astro:after-swap", toggleNav);
+  document.addEventListener("astro:after-swap", initNav);
 </script>

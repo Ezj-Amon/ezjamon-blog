@@ -4,8 +4,17 @@ import type {
   ContentFormField,
   FormFieldStoredValue,
 } from "@keystatic/core";
-import { TextArea } from "@keystar/ui/text-field";
-import { createElement } from "react";
+import { TextArea, TextField } from "@keystar/ui/text-field";
+import { createElement, type CSSProperties } from "react";
+import {
+  postCategorySuggestions,
+  postSubcategorySuggestions,
+  postTagSuggestions,
+  resourceCategorySuggestions,
+  resourceSubcategorySuggestions,
+  resourceTagSuggestions,
+  type CmsTaxonomyOption,
+} from "./src/data/cmsTaxonomy";
 import { slugifyStr } from "./src/utils/slugify";
 
 const tagSeparators = /[,\n\r;，；、]+|\s{2,}/u;
@@ -41,24 +50,234 @@ function formatTagsForEditing(tags: readonly string[]) {
   return tags.join(", ");
 }
 
-function tagListField({
+function parseOptionalText(value: FormFieldStoredValue) {
+  if (value === undefined) return "";
+  if (typeof value === "string") return value;
+
+  throw new Error("该字段必须是文本");
+}
+
+function serializeOptionalText(value: string) {
+  const trimmed = value.trim();
+  return { value: trimmed || undefined };
+}
+
+function readOptionalText(value: FormFieldStoredValue) {
+  const parsed = parseOptionalText(value).trim();
+  return parsed || undefined;
+}
+
+const suggestionWrapStyle: CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 6,
+  marginTop: 8,
+};
+
+const suggestionButtonStyle: CSSProperties = {
+  border: "1px solid var(--ksv-color-border-neutral)",
+  borderRadius: 999,
+  background: "var(--ksv-color-background-canvas)",
+  cursor: "pointer",
+  fontSize: 12,
+  lineHeight: 1,
+  padding: "6px 9px",
+};
+
+const selectedButtonStyle: CSSProperties = {
+  ...suggestionButtonStyle,
+  background: "var(--ksv-color-background-accent-emphasis)",
+  color: "var(--ksv-color-foreground-onEmphasis)",
+};
+
+const infoPanelStyle: CSSProperties = {
+  border: "1px solid var(--ksv-color-border-neutral)",
+  borderRadius: 8,
+  background: "var(--ksv-color-background-surface)",
+  padding: 12,
+};
+
+const infoTitleStyle: CSSProperties = {
+  fontSize: 13,
+  fontWeight: 700,
+  margin: "0 0 8px",
+};
+
+const infoListStyle: CSSProperties = {
+  display: "grid",
+  gap: 6,
+  fontSize: 13,
+  lineHeight: 1.5,
+  margin: 0,
+  paddingLeft: 18,
+};
+
+function renderSuggestions({
+  suggestions,
+  currentValues,
+  onPick,
+  max = 30,
+}: {
+  suggestions: readonly CmsTaxonomyOption[];
+  currentValues?: readonly string[];
+  onPick(value: string): void;
+  max?: number;
+}) {
+  if (suggestions.length === 0) return null;
+
+  const selected = new Set(currentValues ?? []);
+  const ordered = [
+    ...suggestions.filter(option => selected.has(option.value)),
+    ...suggestions.filter(option => !selected.has(option.value)),
+  ].slice(0, max);
+
+  return createElement(
+    "div",
+    { style: suggestionWrapStyle },
+    ordered.map(option =>
+      createElement(
+        "button",
+        {
+          key: option.value,
+          type: "button",
+          style: selected.has(option.value)
+            ? selectedButtonStyle
+            : suggestionButtonStyle,
+          onClick: () => onPick(option.value),
+          title: selected.has(option.value) ? "已选择，点击移除" : "点击添加",
+        },
+        option.label
+      )
+    )
+  );
+}
+
+function suggestedTextField({
   label,
   description,
+  suggestions,
 }: {
   label: string;
   description: string;
+  suggestions: readonly CmsTaxonomyOption[];
+}): BasicFormField<string, string, string | undefined> {
+  return {
+    kind: "form",
+    label,
+    Input(props) {
+      return createElement(
+        "div",
+        null,
+        createElement(TextField, {
+          label,
+          description,
+          autoFocus: props.autoFocus,
+          value: props.value,
+          onChange: props.onChange,
+        }),
+        renderSuggestions({
+          suggestions,
+          currentValues: props.value.trim() ? [props.value.trim()] : [],
+          onPick(value) {
+            props.onChange(props.value.trim() === value ? "" : value);
+          },
+          max: 14,
+        })
+      );
+    },
+    defaultValue() {
+      return "";
+    },
+    parse: parseOptionalText,
+    serialize: serializeOptionalText,
+    validate(value) {
+      return value;
+    },
+    reader: {
+      parse: readOptionalText,
+    },
+  };
+}
+
+function infoPanelField({
+  label,
+  items,
+}: {
+  label: string;
+  items: readonly string[];
+}): BasicFormField<null> {
+  return {
+    kind: "form",
+    label,
+    Input() {
+      return createElement(
+        "section",
+        { style: infoPanelStyle },
+        createElement("p", { style: infoTitleStyle }, label),
+        createElement(
+          "ul",
+          { style: infoListStyle },
+          items.map(item => createElement("li", { key: item }, item))
+        )
+      );
+    },
+    defaultValue() {
+      return null;
+    },
+    parse() {
+      return null;
+    },
+    serialize() {
+      return { value: undefined };
+    },
+    validate() {
+      return null;
+    },
+    reader: {
+      parse() {
+        return null;
+      },
+    },
+  };
+}
+
+function tagListField({
+  label,
+  description,
+  suggestions = [],
+}: {
+  label: string;
+  description: string;
+  suggestions?: readonly CmsTaxonomyOption[];
 }): BasicFormField<string, string, readonly string[]> {
   return {
     kind: "form",
     label,
     Input(props) {
-      return createElement(TextArea, {
-        label,
-        description,
-        autoFocus: props.autoFocus,
-        value: props.value,
-        onChange: props.onChange,
-      });
+      const currentTags = splitTags(props.value);
+
+      return createElement(
+        "div",
+        null,
+        createElement(TextArea, {
+          label,
+          description,
+          autoFocus: props.autoFocus,
+          value: props.value,
+          onChange: props.onChange,
+        }),
+        renderSuggestions({
+          suggestions,
+          currentValues: currentTags,
+          onPick(value) {
+            const hasTag = currentTags.includes(value);
+            const nextTags = hasTag
+              ? currentTags.filter(tag => tag !== value)
+              : [...currentTags, value];
+            props.onChange(formatTagsForEditing(nextTags));
+          },
+        })
+      );
     },
     defaultValue() {
       return "";
@@ -183,19 +402,31 @@ const postFields = (extension: "md" | "mdx") => ({
     description: "写完准备发布前，记得取消勾选。",
     defaultValue: false,
   }),
-  category: fields.text({
+  category: suggestedTextField({
     label: "一级分类",
     description:
-      "用于文章列表里的主分类。建议填写稳定主题，比如 AI 搜索、建站笔记、前端开发。",
+      "优先点击已有分类，避免同一主题写出多个近义分类；需要新主题时也可以直接输入。",
+    suggestions: postCategorySuggestions,
   }),
-  subcategory: fields.text({
+  subcategory: suggestedTextField({
     label: "二级分类",
-    description: "可选。显示在普通标签之前，适合更细的内容分组。",
+    description: "可选。适合记录系列、栏目或更细的写作场景。",
+    suggestions: postSubcategorySuggestions,
   }),
   tags: tagListField({
     label: "标签",
     description:
-      "可一次输入多个标签。支持用逗号、顿号、分号、换行或两个以上空格分隔；保存时会自动去重。",
+      "点击下方已有标签即可添加/移除；也可以直接输入新标签。支持逗号、顿号、分号、换行或两个以上空格分隔，保存时会自动去重。",
+    suggestions: postTagSuggestions,
+  }),
+  publishingGuide: infoPanelField({
+    label: "发布前检查",
+    items: [
+      "摘要写 1-2 句话：让列表、搜索和分享预览都能看懂这篇文章。",
+      "一级分类优先用已有分类，标签控制在 2-5 个，避免同义词越积越多。",
+      "即时发布：取消“草稿”。预约发布：勾选“到发布时间后自动公开”并确认发布时间。",
+      "普通文章优先用“普通文章（推荐）”；只有需要 import 或组件时再用高级 MDX。",
+    ],
   }),
   ogImage: fields.text({
     label: "分享图 / OG 图片（可选）",
@@ -285,18 +516,22 @@ const resourceFields = {
     label: "收藏时间",
     defaultValue: { kind: "now" },
   }),
-  category: fields.text({
+  category: suggestedTextField({
     label: "一级分类",
-    description: "例如 游戏资料、资源收藏、AI 搜索。",
+    description:
+      "优先点击已有分类，避免收藏页出现重复或近义分类；需要新分类时也可以直接输入。",
+    suggestions: resourceCategorySuggestions,
   }),
-  subcategory: fields.text({
+  subcategory: suggestedTextField({
     label: "二级分类",
-    description: "会显示在普通标签之前，适合写更细的用途或类型。",
+    description: "会显示在普通标签之前，适合写更细的用途或资源类型。",
+    suggestions: resourceSubcategorySuggestions,
   }),
   tags: tagListField({
     label: "标签",
     description:
-      "可一次输入多个标签。支持用逗号、顿号、分号、换行或两个以上空格分隔；保存时会自动去重。",
+      "点击下方已有标签即可添加/移除；也可以直接输入新标签。支持逗号、顿号、分号、换行或两个以上空格分隔，保存时会自动去重。",
+    suggestions: resourceTagSuggestions,
   }),
   draft: fields.checkbox({
     label: "草稿，不公开显示",
@@ -400,7 +635,7 @@ export default config({
   },
   collections: {
     postsMdx: collection({
-      label: "写高级 MDX 文章",
+      label: "高级 MDX 文章（少用）",
       path: "src/content/posts/**",
       slugField: "title",
       entryLayout: "content",
@@ -408,11 +643,11 @@ export default config({
         data: "yaml",
         contentField: "body",
       },
-      columns: ["title", "pubDatetime", "draft", "featured"],
+      columns: ["title", "category", "pubDatetime", "draft", "featured"],
       schema: postFields("mdx"),
     }),
     postsMarkdown: collection({
-      label: "写普通文章",
+      label: "普通文章（推荐）",
       path: "src/content/posts/**",
       slugField: "title",
       entryLayout: "content",
@@ -420,7 +655,7 @@ export default config({
         data: "yaml",
         contentField: "body",
       },
-      columns: ["title", "pubDatetime", "draft", "featured"],
+      columns: ["title", "category", "pubDatetime", "draft", "featured"],
       schema: postFields("md"),
     }),
     resources: collection({
@@ -432,7 +667,7 @@ export default config({
         data: "yaml",
         contentField: "body",
       },
-      columns: ["title", "type", "source", "draft"],
+      columns: ["title", "type", "category", "source", "draft"],
       schema: resourceFields,
     }),
     progress: collection({

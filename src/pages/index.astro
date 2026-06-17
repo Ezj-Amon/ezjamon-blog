@@ -13,7 +13,11 @@ import Datetime from "@/components/Datetime.astro";
 import Tag from "@/components/Tag.astro";
 import { getSortedPosts } from "@/utils/getSortedPosts";
 import { getPostUrl } from "@/utils/getPostPaths";
-import { getContentTaxonomy, getEntryCategory, getEntrySecondaryTags } from "@/utils/getContentTaxonomy";
+import {
+  getContentTaxonomy,
+  getEntryCategory,
+  getEntrySecondaryTags,
+} from "@/utils/getContentTaxonomy";
 import { getUniqueTags } from "@/utils/getUniqueTags";
 import { resourceTypeLabels } from "@/utils/resourceTypeLabels";
 import config from "@/config";
@@ -40,11 +44,18 @@ const progressItems = (
 const sortedPosts = getSortedPosts(posts);
 const featuredPosts = sortedPosts.filter(({ data }) => data.featured);
 const curatedPosts =
-  featuredPosts.length >= 2 ? featuredPosts.slice(0, 2) : sortedPosts.slice(0, 2);
+  featuredPosts.length >= 2
+    ? featuredPosts.slice(0, 2)
+    : sortedPosts.slice(0, 2);
 const latestPosts = sortedPosts.slice(0, 4);
 const tags = getUniqueTags([...sortedPosts, ...resources]).slice(0, 16);
 const taxonomy = getContentTaxonomy([...sortedPosts, ...resources]);
 const homePath = getRelativeLocaleUrl(locale, "");
+const homeStats = [
+  { label: "文章", value: sortedPosts.length },
+  { label: "收藏", value: resources.length },
+  { label: "主题", value: taxonomy.length },
+];
 ---
 
 <Layout>
@@ -61,10 +72,10 @@ const homePath = getRelativeLocaleUrl(locale, "");
     >
       <div>
         <p class="text-accent text-sm font-semibold">
-          你好，欢迎来到我的数字花园 👋
+          你好，欢迎来到我的数字花园
         </p>
         <h1
-          class="mt-3 max-w-3xl text-4xl leading-[1.05] font-black tracking-[-0.01em] text-slate-950 sm:text-5xl lg:text-6xl"
+          class="text-foreground mt-3 max-w-3xl text-4xl leading-[1.05] font-black sm:text-5xl lg:text-6xl"
         >
           Amon's Notes<br />
           一些正在生长的记录。
@@ -98,6 +109,21 @@ const homePath = getRelativeLocaleUrl(locale, "");
             <span class="sr-only">RSS 订阅</span>
           </LinkButton>
         </div>
+
+        <dl class="mt-6 grid max-w-xl grid-cols-3 gap-2">
+          {
+            homeStats.map(stat => (
+              <div class="border-border bg-muted/55 rounded-lg border px-3 py-2">
+                <dt class="text-muted-foreground text-xs font-semibold">
+                  {stat.label}
+                </dt>
+                <dd class="text-foreground mt-1 text-2xl font-black">
+                  {stat.value}
+                </dd>
+              </div>
+            ))
+          }
+        </dl>
       </div>
 
       <aside
@@ -119,10 +145,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
                 <li class="flex items-center gap-4 text-sm font-medium">
                   <span class="bg-accent size-1.5 rounded-full" />
                   <a
-                    href={getRelativeLocaleUrl(
-                      locale,
-                      `progress/${item.id}/`
-                    )}
+                    href={getRelativeLocaleUrl(locale, `progress/${item.id}/`)}
                     class="hover:text-accent"
                   >
                     {item.data.title}
@@ -183,7 +206,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
                     {post.data.title}
                   </a>
                   <Datetime
-                    class="mt-1 text-xs [&>svg]:hidden [&_time]:text-xs"
+                    class="mt-1 text-xs [&_time]:text-xs [&>svg]:hidden"
                     pubDatetime={post.data.pubDatetime}
                     modDatetime={post.data.modDatetime}
                   />
@@ -219,7 +242,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
       </div>
       <ul
         data-resource-strip
-        class="flex snap-x gap-4 overflow-x-auto scroll-smooth pb-1 pr-10 sm:pr-0"
+        class="flex snap-x gap-4 overflow-x-auto scroll-smooth pr-10 pb-1 sm:pr-0"
       >
         {
           resources.slice(0, 8).map(resource => {
@@ -228,7 +251,7 @@ const homePath = getRelativeLocaleUrl(locale, "");
 
             return (
               <li class="min-w-[calc(100%-0.25rem)] snap-start sm:min-w-[calc((100%-2rem)/3)]">
-                <article class="border-border bg-background flex h-full flex-col rounded-lg border p-3 transition hover:border-accent/70 hover:shadow-lg hover:shadow-black/5">
+                <article class="border-border bg-background hover:border-accent/70 flex h-full flex-col rounded-lg border p-3 transition hover:shadow-lg hover:shadow-black/5">
                   <div class="mb-3 flex items-center gap-2 text-xs font-semibold">
                     <span
                       class="bg-accent/10 text-accent rounded-md px-2 py-1"
@@ -253,21 +276,19 @@ const homePath = getRelativeLocaleUrl(locale, "");
                     href={resource.data.url}
                     target="_blank"
                     rel="noreferrer"
-                    class="hover:text-accent line-clamp-2 text-base font-bold leading-snug"
+                    class="hover:text-accent line-clamp-2 text-base leading-snug font-bold"
                   >
                     {resource.data.title}
                   </a>
-                  {
-                    resource.data.note ? (
-                      <p class="text-muted-foreground mt-1 line-clamp-1 text-sm leading-6">
-                        记：{resource.data.note}
-                      </p>
-                    ) : (
-                      <p class="text-muted-foreground mt-1 line-clamp-1 text-sm leading-6">
-                        {resource.data.description}
-                      </p>
-                    )
-                  }
+                  {resource.data.note ? (
+                    <p class="text-muted-foreground mt-1 line-clamp-1 text-sm leading-6">
+                      记：{resource.data.note}
+                    </p>
+                  ) : (
+                    <p class="text-muted-foreground mt-1 line-clamp-1 text-sm leading-6">
+                      {resource.data.description}
+                    </p>
+                  )}
                   {resource.data.source && (
                     <p class="text-muted-foreground mt-2 text-xs">
                       来源：{resource.data.source}
@@ -276,16 +297,12 @@ const homePath = getRelativeLocaleUrl(locale, "");
                   {secondaryTags.length > 0 && (
                     <ul class="mt-auto flex flex-wrap gap-2 pt-3">
                       {secondaryTags.map(tag => (
-                        <Tag
-                          tag={tag.tag}
-                          tagName={tag.tagName}
-                          size="sm"
-                        />
+                        <Tag tag={tag.tag} tagName={tag.tagName} size="sm" />
                       ))}
                     </ul>
                   )}
                   <Datetime
-                    class="mt-3 text-xs [&>svg]:hidden [&_time]:text-xs"
+                    class="mt-3 text-xs [&_time]:text-xs [&>svg]:hidden"
                     pubDatetime={resource.data.pubDatetime}
                   />
                 </article>
@@ -313,16 +330,18 @@ const homePath = getRelativeLocaleUrl(locale, "");
             <Tag {tag} {tagName} {count} size="sm" />
           ))
         }
-        {taxonomy.length > 0 && (
-          <li>
-            <a
-              href={getRelativeLocaleUrl(locale, "tags")}
-              class="bg-muted hover:text-accent inline-flex rounded-md px-4 py-1.5 text-sm font-semibold"
-            >
-              更多
-            </a>
-          </li>
-        )}
+        {
+          taxonomy.length > 0 && (
+            <li>
+              <a
+                href={getRelativeLocaleUrl(locale, "tags")}
+                class="bg-muted hover:text-accent inline-flex rounded-md px-4 py-1.5 text-sm font-semibold"
+              >
+                更多
+              </a>
+            </li>
+          )
+        }
       </ul>
     </section>
   </main>
@@ -339,8 +358,9 @@ const homePath = getRelativeLocaleUrl(locale, "");
     }
 
     const strip = document.querySelector<HTMLElement>("[data-resource-strip]");
-    const buttons =
-      document.querySelectorAll<HTMLButtonElement>("[data-resource-scroll]");
+    const buttons = document.querySelectorAll<HTMLButtonElement>(
+      "[data-resource-scroll]"
+    );
 
     buttons.forEach(button => {
       button.addEventListener("click", () => {

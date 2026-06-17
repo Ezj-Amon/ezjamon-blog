@@ -17,6 +17,10 @@
       @apply italic;
     }
 
+    > h1:first-child {
+      @apply hidden;
+    }
+
     p,
     strong,
     ol,
