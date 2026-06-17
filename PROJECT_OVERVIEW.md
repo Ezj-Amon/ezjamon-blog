@@ -3,6 +3,13 @@
 This repository is the source code for Amon's personal blog at `https://ezjamon.com`.
 It is based on AstroPaper and has been adapted for Chinese content, Cloudflare Pages deployment, Pagefind search, RSS/sitemap generation, and Keystatic Cloud CMS editing.
 
+## Documentation Roles
+
+- `README.md`: public-facing repository entry point. Keep it short, personal, and focused on what the site is, how to run it, and where to find deeper notes.
+- `PROJECT_OVERVIEW.md`: engineering and maintenance reference. Put architecture, deployment, content model, CMS, build, and pitfall details here instead of expanding the README.
+
+When adding new operational knowledge, prefer updating this file unless the information is essential for a first-time reader landing on the repository.
+
 ## Core Stack
 
 - Framework: Astro 6
@@ -187,6 +194,18 @@ During a successful build, confirm these are generated:
 - post pages under `/posts/...`
 - Pagefind index under `dist/pagefind` for Pages builds.
 - Pagefind index under `dist/client/pagefind` for CMS Worker builds.
+
+## UI And Interaction Conventions
+
+The site should read as a real personal blog rather than a stock theme or product landing page.
+
+- Homepage hierarchy should answer three questions quickly: who this is, what is being written recently, and where to continue reading.
+- Keep the modern, clean visual direction with restrained teal accents.
+- Article, resource, and progress modules can use light cards, but avoid oversized marketing-style sections.
+- Page-level search and filters on `resources`, `progress`, and `tags` are local filters for the current page only.
+- Global search is handled by the navigation search entry and Pagefind search page.
+- When adding local filters, include visible state updates, clear/reset paths, and empty-result feedback.
+- Prefer existing SVG icons from `src/assets/icons` over text-symbol decoration.
 
 ## Notes And Pitfalls
 

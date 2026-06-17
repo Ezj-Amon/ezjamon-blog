@@ -1,166 +1,54 @@
-# AstroPaper 📄
+# Amon Blog
 
-![AstroPaper](public/default-og.jpg)
-[![Figma](https://img.shields.io/badge/Figma-F24E1E?style=for-the-badge&logo=figma&logoColor=white)](https://www.figma.com/community/file/1356898632249991861)
-![Typescript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript&logoColor=white)
-![GitHub](https://img.shields.io/github/license/satnaing/astro-paper?color=%232F3741&style=for-the-badge)
-[![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-%23FE5196?logo=conventionalcommits&logoColor=white&style=for-the-badge)](https://conventionalcommits.org)
-[![Commitizen friendly](https://img.shields.io/badge/commitizen-friendly-brightgreen.svg?style=for-the-badge)](http://commitizen.github.io/cz-cli/)
+这是 [ezjamon.com](https://ezjamon.com) 的源码仓库，也是 Amon 的个人博客。
 
-AstroPaper is a minimal, responsive, accessible and SEO-friendly Astro blog theme. This theme is designed and crafted based on [my personal blog](https://satnaing.dev/blog).
+这里主要记录 AI、建站、内容系统和产品思考里的折腾、复盘与踩坑。它不是一个主题展示项目，而是一个持续维护的个人内容站点。
 
-Read [the blog posts](https://ezjamon.com/posts/) or check [the README Documentation Section](#-documentation) for more info.
+## 这里有什么
 
-## 🔥 Features
+- 文章：较完整的技术笔记、复盘和思考。
+- 收藏：工具、教程、视频、资料和网页链接。
+- 进展：最近正在推进或阶段性完成的事情。
+- 标签与分类：按主题继续浏览相关内容。
 
-- [x] type-safe markdown
-- [x] super fast performance
-- [x] accessible (Keyboard/VoiceOver)
-- [x] responsive (mobile ~ desktops)
-- [x] SEO-friendly
-- [x] light & dark mode
-- [x] static search ([Pagefind](https://pagefind.app/))
-- [x] draft posts & pagination
-- [x] sitemap & rss feed
-- [x] MDX support
-- [x] collapsible table of contents
-- [x] followed best practices
-- [x] highly customizable
-- [x] dynamic OG image generation for blog posts ([Blog Post](https://ezjamon.com/posts/dynamic-og-image-generation-in-astropaper-blog-posts/))
-- [x] i18n ready
-
-_Note: I've tested screen-reader accessibility of AstroPaper using **VoiceOver** on Mac and **TalkBack** on Android. I couldn't test all other screen-readers out there. However, accessibility enhancements in AstroPaper should be working fine on others as well._
-
-## ✅ Lighthouse Score
-
-<p align="center">
-  <a href="https://pagespeed.web.dev/report?url=https%3A%2F%2Fezjamon.com%2F&form_factor=desktop">
-    <img width="710" alt="AstroPaper Lighthouse Score" src="AstroPaper-lighthouse-score.svg">
-  </a>
-</p>
-
-## 🚀 Project Structure
-
-Inside of AstroPaper, you'll see the following folders and files:
+## 本地开发
 
 ```bash
-/
-├── public/
-│   ├── pagefind/          # auto-generated on build
-│   ├── favicon.svg
-│   └── default-og.jpg
-├── src/
-│   ├── assets/
-│   │   ├── icons/
-│   │   └── images/
-│   ├── components/
-│   ├── content/
-│   │   ├── pages/
-│   │   │   └── about.md
-│   │   └── posts/
-│   │       └── some-blog-posts.md
-│   ├── i18n/
-│   ├── layouts/
-│   ├── pages/
-│   ├── scripts/
-│   ├── styles/
-│   ├── types/
-│   ├── utils/
-│   ├── config.ts
-│   └── content.config.ts
-├── astro-paper.config.ts  # user-defined configurations
-└── astro.config.ts
+npm install
+npm run dev
 ```
 
-All blog posts are stored in the `src/content/posts/` directory. You can organise posts into subdirectories — the subdirectory name becomes part of the post URL.
+默认本地地址：
 
-## 📖 Documentation
+```txt
+http://localhost:4321
+```
 
-Documentation can be read in two formats\_ _markdown_ & _blog post_.
-
-- Configuration - [markdown](src/content/posts/how-to-configure-astropaper-theme.md) | [blog post](https://ezjamon.com/posts/how-to-configure-astropaper-theme/)
-- Add Posts - [markdown](src/content/posts/adding-new-post.md) | [blog post](https://ezjamon.com/posts/adding-new-posts-in-astropaper-theme/)
-- Customize Color Schemes - [markdown](src/content/posts/customizing-astropaper-theme-color-schemes.md) | [blog post](https://ezjamon.com/posts/customizing-astropaper-theme-color-schemes/)
-- Predefined Color Schemes - [markdown](src/content/posts/predefined-color-schemes.md) | [blog post](https://ezjamon.com/posts/predefined-color-schemes/)
-
-## 💻 Tech Stack
-
-**Main Framework** - [Astro](https://astro.build/)  
-**Type Checking** - [TypeScript](https://www.typescriptlang.org/)  
-**Styling** - [TailwindCSS](https://tailwindcss.com/)  
-**UI/UX** - [Figma Design File](https://www.figma.com/community/file/1356898632249991861)  
-**Static Search** - [Pagefind](https://pagefind.app/)  
-**Icons** - [Tablers](https://tabler-icons.io/)  
-**Code Formatting** - [Prettier](https://prettier.io/)  
-**Deployment** - [Cloudflare Pages](https://pages.cloudflare.com/)  
-**Linting** - [ESLint](https://eslint.org)  
-**Dynamic OG images** - [Satori](https://github.com/vercel/satori) + [Sharp](https://sharp.pixelplumbing.com/) + [Astro Fonts](https://docs.astro.build/en/guides/fonts/)
-
-## 👨🏻‍💻 Running Locally
-
-You can start using this project locally by running the following command in your desired directory:
+## 发布前检查
 
 ```bash
-# pnpm
-pnpm create astro@latest --template satnaing/astro-paper
-
-# npm
-npm create astro@latest -- --template satnaing/astro-paper
-
-# yarn
-yarn create astro --template satnaing/astro-paper
-
-# bun
-bun create astro@latest -- --template satnaing/astro-paper
+npm run lint
+npm run build
+npm run build:cms
 ```
 
-Then start the project by running the following commands:
+`npm run build` 用于验证公开站点和 Pagefind 搜索索引。
 
-```bash
-# install dependencies if you haven't done so in the previous step.
-pnpm install
+`npm run build:cms` 用于验证 Cloudflare / Keystatic CMS 构建路径。
 
-# start running the project
-pnpm dev
-```
+## 维护提示
 
-## Google Site Verification (optional)
+- 首页应保持个人博客感，围绕“我是谁、最近在写什么、从哪里继续看”组织内容。
+- 收藏、进展、标签页的搜索只筛选当前页面，全站搜索由导航栏入口承担。
+- 不提交 `dist`、`.astro`、`.wrangler`、`public/pagefind`、`output`、`test-results` 等生成产物。
+- 构建脚本只能引用 Node 内置模块或 `package.json` 中明确声明的依赖。
 
-You can add your [Google Site Verification HTML tag](https://support.google.com/webmasters/answer/9008080#meta_tag_verification&zippy=%2Chtml-tag) by setting `site.googleVerification` in `astro-paper.config.ts`:
+更完整的工程结构、内容模型、CMS、部署和构建注意事项见 [PROJECT_OVERVIEW.md](PROJECT_OVERVIEW.md)。
 
-```ts file="astro-paper.config.ts"
-export default defineAstroPaperConfig({
-  site: {
-    // ...
-    googleVerification: "your-google-site-verification-value",
-  },
-  // ...
-});
-```
+## 致谢
 
-> See [this discussion](https://github.com/satnaing/astro-paper/discussions/334#discussioncomment-10139247) for adding AstroPaper to the Google Search Console.
+本博客最初基于 [AstroPaper](https://github.com/satnaing/astro-paper) 改造。
 
-## 🧞 Commands
+## License
 
-All commands are run from the root of the project, from a terminal:
-
-| Command          | Action                                                                                                                           |
-| :--------------- | :------------------------------------------------------------------------------------------------------------------------------- |
-| `pnpm install`   | Installs dependencies                                                                                                            |
-| `pnpm dev`       | Starts local dev server at `localhost:4321`                                                                                      |
-| `pnpm build`     | Type-checks, builds the site, runs Pagefind indexing, and copies the index to `public/pagefind/`                                 |
-| `pnpm preview`   | Preview your build locally, before deploying                                                                                     |
-| `pnpm sync`      | Generates TypeScript types for all Astro modules. [Learn more](https://docs.astro.build/en/reference/cli-reference/#astro-sync). |
-| `pnpm astro ...` | Run CLI commands like `astro add`, `astro check`                                                                                 |
-
-## ✨ Feedback & Suggestions
-
-If you have any suggestions/feedback, you can contact me via [my email](mailto:satnaingdev+astropaper@gmail.com). Alternatively, feel free to open an issue if you find bugs or want to request new features.
-
-## 📜 License
-
-Licensed under the MIT License, Copyright © 2026
-
----
-
-Made with 🤍 by [Sat Naing](https://satnaing.dev) 👨🏻‍💻 and [contributors](https://github.com/satnaing/astro-paper/graphs/contributors).
+MIT License.
