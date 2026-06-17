@@ -27,6 +27,8 @@ It is based on AstroPaper and has been adapted for Chinese content, Cloudflare P
 - `src/pages/rss.xml.ts`: RSS feed route.
 - `src/pages/sitemap.xml.ts`: custom sitemap route.
 - `src/pages/search.astro`: Pagefind search page.
+- `scripts/generate-cms-taxonomy.mjs`: scans existing frontmatter and generates CMS category/tag suggestions.
+- `src/data/cmsTaxonomy.ts`: generated Keystatic suggestion data for categories, subcategories, and tags.
 - `src/utils/`: post sorting, filtering, slug, tag, and path helpers.
 
 ## Content Model
@@ -152,6 +154,7 @@ pnpm install
 pnpm dev
 pnpm run build
 pnpm run build:cms
+pnpm run cms:taxonomy
 pnpm run lint
 npx tsc --noEmit
 ```
@@ -194,5 +197,6 @@ During a successful build, confirm these are generated:
 - If `/keystatic` returns 404 on the public Pages domain, that is expected for the static build. Use the CMS Worker domain.
 - If `/keystatic` returns 404 on the CMS Worker domain, check that the Worker uses `npm run build:cms` before `npx wrangler deploy`.
 - If Cloudflare fails before running the build command with `ERR_PNPM_OUTDATED_LOCKFILE`, run `pnpm install --lockfile-only`, then commit `pnpm-lock.yaml`.
+- Build-time scripts such as `scripts/generate-cms-taxonomy.mjs` must use Node built-ins or explicitly declared `package.json` dependencies only. Do not import transitive/local-only packages such as `js-yaml`; Cloudflare installs from the lockfile and will fail with `ERR_MODULE_NOT_FOUND` if a script imports a package that is not declared for this project.
 - When adding new post frontmatter fields, update both Astro's schema and Keystatic's schema.
 - Keep `astro-paper.config.ts` site URL as `https://ezjamon.com/`; RSS, sitemap, canonical URLs, and social metadata depend on it.

@@ -1,6 +1,5 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
-import yaml from "js-yaml";
 
 const root = process.cwd();
 const outputPath = path.join(root, "src", "data", "cmsTaxonomy.ts");
@@ -43,12 +42,63 @@ async function listMarkdownFiles(dir) {
   return files.flat();
 }
 
+function unquoteYamlScalar(value) {
+  const trimmed = value.trim();
+  const quoted = trimmed.match(/^(['"])([\s\S]*)\1$/);
+  if (!quoted) return trimmed;
+
+  return quoted[2]
+    .replace(/\\"/g, '"')
+    .replace(/\\'/g, "'")
+    .replace(/\\\\/g, "\\");
+}
+
+function parseScalar(frontmatter, field) {
+  const match = frontmatter.match(new RegExp(`^${field}:[ \\t]*(.*)$`, "m"));
+  if (!match) return undefined;
+
+  const value = match[1].trim();
+  if (!value || value === "|" || value === ">") return undefined;
+
+  return unquoteYamlScalar(value);
+}
+
+function parseStringList(frontmatter, field) {
+  const match = frontmatter.match(new RegExp(`^${field}:[ \\t]*(.*)$`, "m"));
+  if (!match) return [];
+
+  const inlineValue = match[1].trim();
+  if (inlineValue.startsWith("[") && inlineValue.endsWith("]")) {
+    return inlineValue
+      .slice(1, -1)
+      .split(",")
+      .map(value => unquoteYamlScalar(value))
+      .filter(Boolean);
+  }
+
+  const startIndex = match.index + match[0].length;
+  const block = frontmatter.slice(startIndex).split(/\r?\n/);
+  const values = [];
+
+  for (const line of block) {
+    if (/^\S/.test(line)) break;
+
+    const item = line.match(/^\s*-\s+(.+?)\s*$/);
+    if (item) values.push(unquoteYamlScalar(item[1]));
+  }
+
+  return values;
+}
+
 function extractFrontmatter(content) {
   const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return {};
 
-  const parsed = yaml.load(match[1]);
-  return parsed && typeof parsed === "object" ? parsed : {};
+  return {
+    category: parseScalar(match[1], "category"),
+    subcategory: parseScalar(match[1], "subcategory"),
+    tags: parseStringList(match[1], "tags"),
+  };
 }
 
 function addCount(map, value) {
