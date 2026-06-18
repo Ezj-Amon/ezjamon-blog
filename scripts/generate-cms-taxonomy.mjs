@@ -1,5 +1,6 @@
 import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
+import prettier from "prettier";
 
 const root = process.cwd();
 const outputPath = path.join(root, "src", "data", "cmsTaxonomy.ts");
@@ -25,6 +26,7 @@ const recommended = {
   resources: {
     categories: ["游戏资料", "资源收藏", "AI 搜索", "前端开发", "建站笔记"],
     subcategories: ["文章", "视频", "课程", "工具", "书签", "代码仓库", "游戏"],
+    sources: ["抖音", "Bilibili", "GitHub", "官方文档", "YouTube", "Product Hunt"],
   },
 };
 
@@ -97,6 +99,7 @@ function extractFrontmatter(content) {
   return {
     category: parseScalar(match[1], "category"),
     subcategory: parseScalar(match[1], "subcategory"),
+    source: parseScalar(match[1], "source"),
     tags: parseStringList(match[1], "tags"),
   };
 }
@@ -129,6 +132,7 @@ function toOptions(map, fallbackValues = []) {
 async function collectSource({ key, dir }) {
   const categories = new Map();
   const subcategories = new Map();
+  const entrySources = new Map();
   const tags = new Map();
 
   for (const file of await listMarkdownFiles(dir)) {
@@ -136,6 +140,7 @@ async function collectSource({ key, dir }) {
 
     addCount(categories, frontmatter.category);
     addCount(subcategories, frontmatter.subcategory);
+    addCount(entrySources, frontmatter.source);
 
     if (Array.isArray(frontmatter.tags)) {
       frontmatter.tags.forEach(tag => addCount(tags, tag));
@@ -145,6 +150,7 @@ async function collectSource({ key, dir }) {
   return {
     categories: toOptions(categories, recommended[key].categories),
     subcategories: toOptions(subcategories, recommended[key].subcategories),
+    sources: toOptions(entrySources, recommended[key].sources),
     tags: toOptions(tags),
   };
 }
@@ -194,6 +200,12 @@ export const resourceSubcategorySuggestions = ${JSON.stringify(
   2
 )} satisfies CmsTaxonomyOption[];
 
+export const resourceSourceSuggestions = ${JSON.stringify(
+  taxonomy.resources.sources,
+  null,
+  2
+)} satisfies CmsTaxonomyOption[];
+
 export const resourceTagSuggestions = ${JSON.stringify(
   taxonomy.resources.tags,
   null,
@@ -202,5 +214,11 @@ export const resourceTagSuggestions = ${JSON.stringify(
 `;
 
 await mkdir(path.dirname(outputPath), { recursive: true });
-await writeFile(outputPath, file);
+const prettierConfig = await prettier.resolveConfig(outputPath);
+const formattedFile = await prettier.format(file, {
+  ...prettierConfig,
+  parser: "typescript",
+});
+
+await writeFile(outputPath, formattedFile);
 process.stdout.write(`Generated ${path.relative(root, outputPath)}\n`);

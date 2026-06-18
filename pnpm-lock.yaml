@@ -23,6 +23,9 @@ importers:
       '@astrojs/sitemap':
         specifier: ^3.7.3
         version: 3.7.3
+      '@internationalized/date':
+        specifier: ^3.12.2
+        version: 3.12.2
       '@keystar/ui':
         specifier: 0.7.21
         version: 0.7.21(@react-spectrum/provider@3.11.1(react-dom@19.2.7(react@19.2.7))(react@19.2.7))(react-dom@19.2.7(react@19.2.7))(react@19.2.7)
